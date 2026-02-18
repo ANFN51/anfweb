@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your Name — Personal Website</title>
+  <meta name="description" content="Personal site for Your Name — work, writing, and contact." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="starfield" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">Your Name</div>
+      <nav class="nav">
+        <a href="#work">Work</a>
+        <a href="#writing">Writing</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-text reveal">
+          <p class="eyebrow">Personal website</p>
+          <h1>Elegant ideas, built with care.</h1>
+          <p class="lede">I design and build thoughtful digital experiences — from strategy to polish — with a focus on clarity and craft.</p>
+          <div class="hero-actions">
+            <a class="btn" href="#contact">Let’s talk</a>
+            <a class="btn ghost" href="#work">View work</a>
+          </div>
+          <div class="hero-meta">
+            <div>
+              <div class="meta-title">Based in</div>
+              <div class="meta-value">United States</div>
+            </div>
+            <div>
+              <div class="meta-title">Focus</div>
+              <div class="meta-value">Product, Web, Brand</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-globe reveal" aria-label="3D Earth with gold-highlighted USA">
+          <canvas id="globe"></canvas>
+          <div class="globe-badge">Lebanese</div>
+          <div class="globe-caption">Live WebGL render with atmospheric glow</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="work" class="section reveal">
+      <div class="container">
+        <div class="section-head">
+          <h2>Selected Work</h2>
+          <p>Curated highlights across product, brand, and interactive experiences.</p>
+        </div>
+        <div class="work-grid">
+          <article class="card reveal">
+            <h3>Atlas</h3>
+            <p>Global dashboard redesign with a focus on clarity and speed.</p>
+            <span class="tag">Product</span>
+          </article>
+          <article class="card reveal">
+            <h3>Riviera</h3>
+            <p>High‑touch brand site with cinematic storytelling.</p>
+            <span class="tag">Brand</span>
+          </article>
+          <article class="card reveal">
+            <h3>Lucent</h3>
+            <p>Data‑dense experience distilled into approachable visuals.</p>
+            <span class="tag">Web</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="writing" class="section alt reveal">
+      <div class="container">
+        <div class="section-head">
+          <h2>Writing</h2>
+          <p>Notes on design, systems, and making the complex feel simple.</p>
+        </div>
+        <div class="list">
+          <div class="list-item reveal">
+            <span>01</span>
+            <div>
+              <h3>The Quiet Power of Constraints</h3>
+              <p>How limits can help you reach sharper solutions.</p>
+            </div>
+          </div>
+          <div class="list-item reveal">
+            <span>02</span>
+            <div>
+              <h3>Designing for Trust</h3>
+              <p>Small details that change how people feel.</p>
+            </div>
+          </div>
+          <div class="list-item reveal">
+            <span>03</span>
+            <div>
+              <h3>The Beauty of Systems</h3>
+              <p>Turning chaos into repeatable craft.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section reveal">
+      <div class="container two-col reveal">
+        <div>
+          <h2>About</h2>
+          <p>I help teams translate ambitious ideas into elegant, shippable work. My background blends product design, brand systems, and front‑end development.</p>
+          <p>Recent work includes product dashboards, investor storytelling, and interactive brand sites.</p>
+        </div>
+        <div class="stats">
+          <div>
+            <div class="stat-num">12+</div>
+            <div class="stat-label">Years building</div>
+          </div>
+          <div>
+            <div class="stat-num">40+</div>
+            <div class="stat-label">Projects shipped</div>
+          </div>
+          <div>
+            <div class="stat-num">6</div>
+            <div class="stat-label">Industries served</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section alt reveal">
+      <div class="container contact reveal">
+        <h2>Let’s build something timeless.</h2>
+        <p>Open to collaborations, consulting, and select full‑stack builds.</p>
+        <a class="btn" href="mailto:hello@yourname.com">hello@yourname.com</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2026 Your Name</div>
+      <div class="footer-links">
+        <a href="#">LinkedIn</a>
+        <a href="#">GitHub</a>
+        <a href="#">Dribbble</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
