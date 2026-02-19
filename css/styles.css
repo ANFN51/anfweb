@@ -610,7 +610,7 @@ a,
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
   .hero {
     padding-top: 70px;
   }
