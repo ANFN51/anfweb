@@ -623,6 +623,30 @@ a,
   .stats-bars {
     grid-template-columns: 1fr;
   }
+  body {
+    color: #ffffff;
+  }
+  .brand,
+  h1,
+  h2,
+  h3,
+  .stat-num,
+  .stat-label,
+  .meta-title,
+  .meta-value,
+  .lede,
+  .section-head p,
+  .card p,
+  .list-item p,
+  .card-link,
+  .eyebrow,
+  .nav a,
+  .globe-center,
+  .globe-caption,
+  .tag,
+  .footer-links a {
+    color: #ffffff;
+  }
 }
 
 .reveal {
