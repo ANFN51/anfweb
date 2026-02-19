@@ -69,6 +69,7 @@
   );
   globeGroup.add(atmosphere);
 
+
   function resize() {
     const { width, height } = container.getBoundingClientRect();
     renderer.setSize(width, height, false);
@@ -78,10 +79,41 @@
   window.addEventListener("resize", resize);
   resize();
 
+  const lebanonLat = 33.8547;
+  const lebanonLon = 35.8623;
+  const lebanonTarget = {
+    x: THREE.MathUtils.degToRad(lebanonLat),
+    y: THREE.MathUtils.degToRad(-lebanonLon - 90)
+  };
+
+  let currentX = globeGroup.rotation.x;
+  let currentY = globeGroup.rotation.y;
+  let spinY = currentY;
+  let focusLebanon = false;
+
+  container.addEventListener("mouseenter", () => {
+    focusLebanon = true;
+  });
+
+  container.addEventListener("mouseleave", () => {
+    focusLebanon = false;
+    spinY = currentY;
+  });
+
   function animate() {
-    globeGroup.rotation.y += 0.0012;
-    globeGroup.rotation.x = Math.sin(Date.now() * 0.0002) * 0.03;
-    clouds.rotation.y += 0.0018;
+    if (!focusLebanon) {
+      spinY += 0.0016;
+      const targetX = Math.sin(Date.now() * 0.0002) * 0.03;
+      const targetY = spinY;
+      currentX = lerpAngle(currentX, targetX, 0.06);
+      currentY = lerpAngle(currentY, targetY, 0.06);
+    } else {
+      currentX = lerpAngle(currentX, lebanonTarget.x, 0.08);
+      currentY = lerpAngle(currentY, lebanonTarget.y, 0.08);
+    }
+
+    globeGroup.rotation.set(currentX, currentY, 0);
+    clouds.rotation.y += 0.0022;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }
@@ -260,4 +292,44 @@
       starTicking = false;
     });
   });
+
+  function lerpAngle(a, b, t) {
+    const diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+    return a + diff * t;
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!prefersReducedMotion) {
+    attachTilt(".card", 9, 12);
+    attachTilt(".list-item", 7, 10);
+  }
+
+  function attachTilt(selector, maxTiltX, maxTiltY) {
+    document.querySelectorAll(selector).forEach((el) => {
+      let rafId = null;
+
+      const onMove = (event) => {
+        const rect = el.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const tiltX = (0.5 - y) * maxTiltX;
+        const tiltY = (x - 0.5) * maxTiltY;
+
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          el.style.setProperty("--rx", `${tiltX.toFixed(2)}deg`);
+          el.style.setProperty("--ry", `${tiltY.toFixed(2)}deg`);
+        });
+      };
+
+      const onLeave = () => {
+        if (rafId) cancelAnimationFrame(rafId);
+        el.style.setProperty("--rx", "0deg");
+        el.style.setProperty("--ry", "0deg");
+      };
+
+      el.addEventListener("mousemove", onMove);
+      el.addEventListener("mouseleave", onLeave);
+    });
+  }
 })();
