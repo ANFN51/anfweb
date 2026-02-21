@@ -705,12 +705,6 @@ a,
     flex-direction: column;
     gap: 16px;
   }
-  .nav {
-    display: none;
-  }
-  .menu-toggle {
-    display: flex;
-  }
 }
 
 @media (max-width: 640px), (hover: none) and (pointer: coarse) {
@@ -734,6 +728,12 @@ a,
   }
   .stats-bars {
     grid-template-columns: 1fr;
+  }
+  .nav {
+    display: none;
+  }
+  .menu-toggle {
+    display: flex;
   }
   body,
   body * {
