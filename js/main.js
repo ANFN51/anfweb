@@ -110,8 +110,8 @@
     if (mobileQuery.matches) {
       const targetX = lerpAngle(baseX, lebanonTarget.x, mobileFocus);
       const targetY = lerpAngle(baseY, lebanonTarget.y, mobileFocus);
-      currentX = lerpAngle(currentX, targetX, 0.08);
-      currentY = lerpAngle(currentY, targetY, 0.08);
+      currentX = lerpAngle(currentX, targetX, 0.1);
+      currentY = lerpAngle(currentY, targetY, 0.1);
     } else if (!focusLebanon) {
       currentX = lerpAngle(currentX, baseX, 0.06);
       currentY = lerpAngle(currentY, baseY, 0.06);
@@ -121,6 +121,7 @@
     }
 
     globeGroup.rotation.set(currentX, currentY, 0);
+    container.classList.toggle("show-label", focusLebanon || mobileFocus > 0.15);
     clouds.rotation.y += 0.0022;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
@@ -321,10 +322,11 @@
     if (mobileQuery.matches && heroSection) {
       const heroTop = heroSection.offsetTop;
       const heroHeight = heroSection.offsetHeight;
-      const start = heroTop - window.innerHeight * 0.1;
-      const end = heroTop + heroHeight * 0.8;
-      const progress = (scrollTop - start) / (end - start);
-      mobileFocus = Math.min(1, Math.max(0, progress));
+      const start = heroTop - window.innerHeight * 0.3;
+      const end = heroTop + heroHeight * 0.6;
+      const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
+      const eased = progress * progress * (3 - 2 * progress);
+      mobileFocus = Math.min(1, eased * 1.15);
     } else {
       mobileFocus = 0;
     }

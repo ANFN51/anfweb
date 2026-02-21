@@ -446,7 +446,8 @@ a,
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.hero-globe:hover .globe-center {
+.hero-globe:hover .globe-center,
+.hero-globe.show-label .globe-center {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
