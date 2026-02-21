@@ -384,7 +384,7 @@
         const rise = (1 - eased) * 18;
         word.style.opacity = eased.toFixed(3);
         word.style.transform = `translateY(${rise}px)`;
-        word.style.filter = `blur(${(1 - eased) * 6}px)`;
+        word.style.filter = "none";
       });
     } else {
       heroWords.forEach((word) => {
