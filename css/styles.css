@@ -910,20 +910,21 @@ body.contact-open {
     padding-top: 70px;
   }
   .hero h1 {
-    font-size: clamp(48px, 12vw, 88px);
+    font-size: clamp(62px, 15vw, 112px);
   }
   .hero-title {
     text-align: left;
-    gap: 0.06em;
+    gap: 0.16em;
   }
   .hero-title .line {
     display: block;
   }
   .hero-word {
     display: block;
+    letter-spacing: 0.01em;
   }
   .hero-word + .hero-word {
-    margin-top: 4px;
+    margin-top: 12px;
   }
   body.render-words .hero-word {
     opacity: 0;
