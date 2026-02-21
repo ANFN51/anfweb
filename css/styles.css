@@ -735,7 +735,7 @@ a,
     font-size: clamp(48px, 12vw, 88px);
   }
   .hero-title {
-    text-align: center;
+    text-align: left;
   }
   .hero-actions {
     flex-direction: column;
@@ -746,8 +746,11 @@ a,
   .section-head h2 {
     font-size: 36px;
   }
+  .contact {
+    text-align: left;
+  }
   .mobile-nav {
-    font-size: 32px;
+    font-size: 36px;
   }
   .stats-bars {
     grid-template-columns: 1fr;
