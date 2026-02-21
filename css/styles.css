@@ -984,10 +984,6 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
-  body,
-  body * {
-    color: #ffffff !important;
-  }
 }
 
 @keyframes heroMaskReveal {
