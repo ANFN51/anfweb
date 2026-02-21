@@ -2,6 +2,7 @@
   const canvas = document.getElementById("globe");
   const container = canvas.parentElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const mobileQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -90,6 +91,7 @@
   let currentY = globeGroup.rotation.y;
   let spinY = currentY;
   let focusLebanon = false;
+  let mobileFocus = 0;
 
   container.addEventListener("mouseenter", () => {
     focusLebanon = true;
@@ -101,12 +103,18 @@
   });
 
   function animate() {
-    if (!focusLebanon) {
-      spinY += 0.0016;
-      const targetX = Math.sin(Date.now() * 0.0002) * 0.03;
-      const targetY = spinY;
-      currentX = lerpAngle(currentX, targetX, 0.06);
-      currentY = lerpAngle(currentY, targetY, 0.06);
+    spinY += 0.0016;
+    const baseX = Math.sin(Date.now() * 0.0002) * 0.03;
+    const baseY = spinY;
+
+    if (mobileQuery.matches) {
+      const targetX = lerpAngle(baseX, lebanonTarget.x, mobileFocus);
+      const targetY = lerpAngle(baseY, lebanonTarget.y, mobileFocus);
+      currentX = lerpAngle(currentX, targetX, 0.08);
+      currentY = lerpAngle(currentY, targetY, 0.08);
+    } else if (!focusLebanon) {
+      currentX = lerpAngle(currentX, baseX, 0.06);
+      currentY = lerpAngle(currentY, baseY, 0.06);
     } else {
       currentX = lerpAngle(currentX, lebanonTarget.x, 0.08);
       currentY = lerpAngle(currentY, lebanonTarget.y, 0.08);
@@ -284,7 +292,7 @@
   const starfield = document.querySelector(".starfield");
   const progressBar = document.getElementById("scroll-progress-bar");
   const heroGlobe = document.querySelector(".hero-globe");
-  const mobileQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
+  const heroSection = document.querySelector(".hero");
   let scrollTicking = false;
 
   const updateScrollEffects = () => {
@@ -308,6 +316,17 @@
       } else {
         heroGlobe.style.setProperty("--parallax", "0px");
       }
+    }
+
+    if (mobileQuery.matches && heroSection) {
+      const heroTop = heroSection.offsetTop;
+      const heroHeight = heroSection.offsetHeight;
+      const start = heroTop - window.innerHeight * 0.1;
+      const end = heroTop + heroHeight * 0.8;
+      const progress = (scrollTop - start) / (end - start);
+      mobileFocus = Math.min(1, Math.max(0, progress));
+    } else {
+      mobileFocus = 0;
     }
   };
 
