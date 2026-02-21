@@ -16,6 +16,25 @@
   box-sizing: border-box;
 }
 
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: transparent;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.scroll-progress-bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: linear-gradient(90deg, #071f42 0%, #0a2b63 55%, #0e3b7a 100%);
+}
+
 html,
 body {
   margin: 0;
@@ -332,6 +351,11 @@ a,
   filter: brightness(1.02);
 }
 
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: var(--lift-1);
+}
+
 .btn.ghost:hover {
   transform: translateY(-2px);
   box-shadow: var(--lift-2);
@@ -365,11 +389,15 @@ a,
   filter: none;
   margin-left: auto;
   overflow: hidden;
+  --hover-lift: 0px;
+  --hover-scale: 1;
+  transform: translateY(calc(var(--reveal-offset, 0px) + var(--parallax, 0px) + var(--hover-lift))) scale(var(--hover-scale));
   transition: transform 0.35s ease, filter 0.35s ease;
 }
 
 .hero-globe:hover {
-  transform: translateY(-6px) scale(1.03);
+  --hover-lift: -6px;
+  --hover-scale: 1.03;
   filter: none;
 }
 
@@ -768,14 +796,16 @@ a,
 }
 
 .reveal {
+  --reveal-offset: 24px;
+  --parallax: 0px;
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(calc(var(--reveal-offset) + var(--parallax)));
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  --reveal-offset: 0px;
 }
 
 @media (prefers-reduced-motion: reduce) {

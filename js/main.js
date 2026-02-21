@@ -282,16 +282,46 @@
   reveals.forEach((el) => revealObserver.observe(el));
 
   const starfield = document.querySelector(".starfield");
-  let starTicking = false;
-  window.addEventListener("scroll", () => {
-    if (starTicking) return;
-    starTicking = true;
-    requestAnimationFrame(() => {
-      const shift = Math.min(window.scrollY * 0.08, 120);
+  const progressBar = document.getElementById("scroll-progress-bar");
+  const heroGlobe = document.querySelector(".hero-globe");
+  const mobileQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
+  let scrollTicking = false;
+
+  const updateScrollEffects = () => {
+    const scrollTop = window.scrollY || window.pageYOffset;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+
+    if (starfield) {
+      const shift = Math.min(scrollTop * 0.08, 120);
       starfield.style.setProperty("--star-shift", `${shift}px`);
-      starTicking = false;
+    }
+
+    if (progressBar) {
+      progressBar.style.transform = `scaleX(${progress})`;
+    }
+
+    if (heroGlobe) {
+      if (mobileQuery.matches) {
+        const parallax = Math.min(scrollTop * 0.08, 60);
+        heroGlobe.style.setProperty("--parallax", `${parallax}px`);
+      } else {
+        heroGlobe.style.setProperty("--parallax", "0px");
+      }
+    }
+  };
+
+  window.addEventListener("scroll", () => {
+    if (scrollTicking) return;
+    scrollTicking = true;
+    requestAnimationFrame(() => {
+      updateScrollEffects();
+      scrollTicking = false;
     });
   });
+
+  window.addEventListener("resize", updateScrollEffects);
+  updateScrollEffects();
 
   function lerpAngle(a, b, t) {
     const diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
