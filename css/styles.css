@@ -286,6 +286,16 @@ a,
 
 .hero-title span {
   display: block;
+  line-height: 1.05;
+}
+
+.hero-title span:nth-child(2) {
+  color: rgba(17, 17, 17, 0.6);
+  font-weight: 500;
+}
+
+.hero-title span:nth-child(3) {
+  font-weight: 800;
 }
 
 .lede {
