@@ -478,6 +478,35 @@
     });
   }
 
+  const contactOrb = document.querySelector(".contact-orb");
+  const contactPanel = document.getElementById("contact-panel");
+  const contactClose = document.querySelector(".contact-close");
+
+  if (contactOrb && contactPanel && contactClose) {
+    const openContact = () => {
+      contactPanel.classList.add("is-open");
+      contactPanel.setAttribute("aria-hidden", "false");
+      contactOrb.setAttribute("aria-expanded", "true");
+      document.body.classList.add("contact-open");
+    };
+
+    const closeContact = () => {
+      contactPanel.classList.remove("is-open");
+      contactPanel.setAttribute("aria-hidden", "true");
+      contactOrb.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("contact-open");
+    };
+
+    contactOrb.addEventListener("click", openContact);
+    contactClose.addEventListener("click", closeContact);
+    contactPanel.addEventListener("click", (event) => {
+      if (event.target === contactPanel) closeContact();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeContact();
+    });
+  }
+
   const moonImg = document.querySelector(".menu-moon");
   if (moonImg && moonImg.dataset.fallback) {
     moonImg.addEventListener("error", () => {

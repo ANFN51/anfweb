@@ -757,6 +757,105 @@ a,
   font-family: "Arial", "Helvetica Neue", sans-serif;
 }
 
+.contact-orb {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: var(--lift-2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.contact-orb img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.contact-orb:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: var(--lift-3);
+  filter: brightness(1.05);
+}
+
+.contact-panel {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 12, 12, 0.45);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 30;
+}
+
+.contact-panel-card {
+  width: min(520px, 92vw);
+  background: linear-gradient(180deg, #f6f1ea 0%, #e8e2db 100%);
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: var(--lift-3);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  transform: translateY(16px) scale(0.98);
+  transition: transform 0.3s ease;
+  display: grid;
+  gap: 16px;
+}
+
+.contact-panel-card h2 {
+  margin: 0;
+}
+
+.contact-panel-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.contact-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+}
+
+.contact-close {
+  justify-self: flex-end;
+  border: none;
+  background: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.contact-panel.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.contact-panel.is-open .contact-panel-card {
+  transform: translateY(0) scale(1);
+}
+
+body.contact-open {
+  overflow: hidden;
+}
+
 .site-footer .container {
   display: flex;
   align-items: center;
@@ -847,6 +946,10 @@ a,
   }
   .mobile-nav {
     font-size: 46px;
+  }
+  .contact-orb,
+  .contact-panel {
+    display: none;
   }
   .hero-visual {
     align-items: center;
