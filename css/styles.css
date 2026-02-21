@@ -993,6 +993,10 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
+  .starfield,
+  .grain {
+    opacity: 0.08;
+  }
 }
 
 @keyframes heroMaskReveal {
