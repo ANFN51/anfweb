@@ -299,6 +299,7 @@
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
   const sections = document.querySelectorAll(".section");
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let autoRenderApplied = false;
   let scrollTicking = false;
 
   const updateScrollEffects = () => {
@@ -367,30 +368,24 @@
     }
 
     document.body.classList.toggle(
-      "render-words",
+      "render-words-auto",
       isMobile && heroWordInners.length > 0 && !prefersReducedMotion
     );
 
-    if (isMobile && heroSection && heroWordInners.length && !prefersReducedMotion) {
-      const heroTop = heroSection.offsetTop;
-      const heroHeight = heroSection.offsetHeight;
-      const start = heroTop - window.innerHeight * 0.2;
-      const end = heroTop + heroHeight * 0.5;
-      const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
-
-      heroWordInners.forEach((word, index) => {
-        const delay = index * 0.14;
-        const local = Math.min(1, Math.max(0, (progress - delay) / (1 - delay)));
-        const eased = local * local * (3 - 2 * local);
-        const rise = (1 - eased) * 110;
-        word.style.opacity = eased.toFixed(3);
-        word.style.transform = `translateY(${rise}%)`;
-      });
+    if (isMobile && heroWordInners.length && !prefersReducedMotion) {
+      if (!autoRenderApplied) {
+        heroWordInners.forEach((word, index) => {
+          word.style.setProperty("--word-delay", `${index * 0.12}s`);
+        });
+        autoRenderApplied = true;
+      }
     } else {
-      heroWordInners.forEach((word) => {
-        word.style.opacity = "";
-        word.style.transform = "";
-      });
+      if (autoRenderApplied) {
+        heroWordInners.forEach((word) => {
+          word.style.removeProperty("--word-delay");
+        });
+      }
+      autoRenderApplied = false;
     }
   };
 
