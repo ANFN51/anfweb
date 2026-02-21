@@ -295,13 +295,16 @@
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
+  const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const sections = document.querySelectorAll(".section");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let scrollTicking = false;
 
   const updateScrollEffects = () => {
     const scrollTop = window.scrollY || window.pageYOffset;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+    const isMobile = mobileQuery.matches;
 
     if (starfield) {
       const shift = Math.min(scrollTop * 0.08, 120);
@@ -312,7 +315,7 @@
       progressBar.style.transform = `scaleX(${progress})`;
     }
 
-    if (mobileQuery.matches && heroSection) {
+    if (isMobile && heroSection) {
       const rect = heroSection.getBoundingClientRect();
       const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
       const clamped = Math.min(1, Math.max(0, progress));
@@ -333,7 +336,7 @@
       }
     }
 
-    if (mobileQuery.matches && heroSection) {
+    if (isMobile && heroSection) {
       const heroTop = heroSection.offsetTop;
       const heroHeight = heroSection.offsetHeight;
       const start = heroTop - window.innerHeight * 0.3;
@@ -346,7 +349,7 @@
     }
 
     if (sections.length) {
-      if (mobileQuery.matches) {
+      if (isMobile) {
         sections.forEach((section) => {
           const rect = section.getBoundingClientRect();
           const center = rect.top + rect.height / 2;
@@ -360,6 +363,35 @@
           section.style.setProperty("--section-parallax", "0px");
         });
       }
+    }
+
+    document.body.classList.toggle(
+      "render-words",
+      isMobile && heroWords.length > 0 && !prefersReducedMotion
+    );
+
+    if (isMobile && heroSection && heroWords.length && !prefersReducedMotion) {
+      const heroTop = heroSection.offsetTop;
+      const heroHeight = heroSection.offsetHeight;
+      const start = heroTop - window.innerHeight * 0.2;
+      const end = heroTop + heroHeight * 0.5;
+      const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
+
+      heroWords.forEach((word, index) => {
+        const delay = index * 0.14;
+        const local = Math.min(1, Math.max(0, (progress - delay) / (1 - delay)));
+        const eased = local * local * (3 - 2 * local);
+        const rise = (1 - eased) * 18;
+        word.style.opacity = eased.toFixed(3);
+        word.style.transform = `translateY(${rise}px)`;
+        word.style.filter = `blur(${(1 - eased) * 6}px)`;
+      });
+    } else {
+      heroWords.forEach((word) => {
+        word.style.opacity = "";
+        word.style.transform = "";
+        word.style.filter = "";
+      });
     }
   };
 
@@ -380,7 +412,6 @@
     return a + diff * t;
   }
 
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!prefersReducedMotion) {
     attachTilt(".card", 9, 12);
     attachTilt(".list-item", 7, 10);
