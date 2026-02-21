@@ -80,6 +80,7 @@ a {
 .starfield {
   position: fixed;
   inset: -20%;
+  background-color: var(--bg);
   background-image:
     radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.7), transparent 40%),
     radial-gradient(1px 1px at 70% 20%, rgba(255, 255, 255, 0.6), transparent 45%),
