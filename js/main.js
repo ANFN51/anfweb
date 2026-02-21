@@ -364,4 +364,11 @@
       if (event.key === "Escape") closeMenu();
     });
   }
+
+  const moonImg = document.querySelector(".menu-moon");
+  if (moonImg && moonImg.dataset.fallback) {
+    moonImg.addEventListener("error", () => {
+      moonImg.src = moonImg.dataset.fallback;
+    }, { once: true });
+  }
 })();
