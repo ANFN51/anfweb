@@ -907,7 +907,7 @@ body.contact-open {
     height: 49px;
   }
   .hero {
-    padding-top: 70px;
+    padding-top: 44px;
   }
   .hero h1 {
     font-size: clamp(62px, 15vw, 112px);
@@ -922,16 +922,19 @@ body.contact-open {
   .hero-word {
     display: block;
     letter-spacing: 0.01em;
+    overflow: hidden;
+  }
+  .hero-word-inner {
+    display: inline-block;
   }
   .hero-word + .hero-word {
     margin-top: 18px;
   }
-  body.render-words .hero-word {
+  body.render-words .hero-word-inner {
     opacity: 0;
-    transform: translateY(16px);
-    filter: none;
+    transform: translateY(110%);
     transition: opacity 0.6s ease, transform 0.6s ease;
-    will-change: transform, opacity, filter;
+    will-change: transform, opacity;
   }
   .hero-actions {
     flex-direction: column;

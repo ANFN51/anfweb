@@ -296,6 +296,7 @@
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
+  const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
   const sections = document.querySelectorAll(".section");
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let scrollTicking = false;
@@ -367,30 +368,28 @@
 
     document.body.classList.toggle(
       "render-words",
-      isMobile && heroWords.length > 0 && !prefersReducedMotion
+      isMobile && heroWordInners.length > 0 && !prefersReducedMotion
     );
 
-    if (isMobile && heroSection && heroWords.length && !prefersReducedMotion) {
+    if (isMobile && heroSection && heroWordInners.length && !prefersReducedMotion) {
       const heroTop = heroSection.offsetTop;
       const heroHeight = heroSection.offsetHeight;
       const start = heroTop - window.innerHeight * 0.2;
       const end = heroTop + heroHeight * 0.5;
       const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
 
-      heroWords.forEach((word, index) => {
+      heroWordInners.forEach((word, index) => {
         const delay = index * 0.14;
         const local = Math.min(1, Math.max(0, (progress - delay) / (1 - delay)));
         const eased = local * local * (3 - 2 * local);
-        const rise = (1 - eased) * 18;
+        const rise = (1 - eased) * 110;
         word.style.opacity = eased.toFixed(3);
-        word.style.transform = `translateY(${rise}px)`;
-        word.style.filter = "none";
+        word.style.transform = `translateY(${rise}%)`;
       });
     } else {
-      heroWords.forEach((word) => {
+      heroWordInners.forEach((word) => {
         word.style.opacity = "";
         word.style.transform = "";
-        word.style.filter = "";
       });
     }
   };

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Ali Noun - CV</title>
   <meta name="description" content="Personal site for Your Name — work, writing, and contact." />
+  <link rel="preload" as="image" href="moon.png" />
+  <link rel="preload" as="image" href="assets/moon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Coiny&display=swap" rel="stylesheet" />
@@ -27,7 +29,7 @@
         <a href="#contact">Contact</a>
       </nav>
       <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="Open menu">
-        <img class="menu-moon" src="assets/moon.png" data-fallback="https://assets.science.nasa.gov/content/dam/science/psd/earths-moon/outreach-materials/NASA-LRO-Moon-mosaic.png" alt="" aria-hidden="true" />
+        <img class="menu-moon" src="assets/moon.png" data-fallback="https://assets.science.nasa.gov/content/dam/science/psd/earths-moon/outreach-materials/NASA-LRO-Moon-mosaic.png" alt="" aria-hidden="true" loading="eager" decoding="async" fetchpriority="high" />
       </button>
     </div>
   </header>
@@ -50,15 +52,15 @@
         <div class="hero-text reveal">
           <h1 class="hero-title hero-layer" data-depth="0.45" aria-label="Elegant ideas built with care">
             <span class="line">
-              <span class="hero-word">Elegant</span>
-              <span class="hero-word">ideas</span>
+              <span class="hero-word"><span class="hero-word-inner">Elegant</span></span>
+              <span class="hero-word"><span class="hero-word-inner">ideas</span></span>
             </span>
             <span class="line">
-              <span class="hero-word">built</span>
-              <span class="hero-word">with</span>
+              <span class="hero-word"><span class="hero-word-inner">built</span></span>
+              <span class="hero-word"><span class="hero-word-inner">with</span></span>
             </span>
             <span class="line">
-              <span class="hero-word">care</span>
+              <span class="hero-word"><span class="hero-word-inner">care</span></span>
             </span>
           </h1>
           <p class="lede hero-layer" data-depth="0.6">I design and build thoughtful digital experiences — from strategy to polish — with a focus on clarity and craft.</p>
@@ -201,7 +203,7 @@
   </footer>
 
   <button class="contact-orb" type="button" aria-label="Open contact info" aria-controls="contact-panel" aria-expanded="false">
-    <img src="moon.png" alt="" aria-hidden="true" />
+    <img src="moon.png" alt="" aria-hidden="true" loading="eager" decoding="async" fetchpriority="high" />
   </button>
 
   <div class="contact-panel" id="contact-panel" role="dialog" aria-modal="true" aria-hidden="true">
