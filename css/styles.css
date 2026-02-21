@@ -939,6 +939,9 @@ body.contact-open {
   .hero-meta {
     grid-template-columns: 1fr;
   }
+  .hero .lede {
+    display: none;
+  }
   .section-head h2 {
     font-size: 36px;
   }
