@@ -287,6 +287,13 @@ a,
   align-items: center;
 }
 
+.hero-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -301,6 +308,13 @@ a,
   font-size: clamp(44px, 6.2vw, 80px);
   line-height: 1.05;
   margin: 0 0 16px;
+}
+
+.hero-layer {
+  --layer-shift: 0px;
+  transform: translate3d(0, var(--layer-shift), 0);
+  transition: transform 0.4s ease;
+  will-change: transform;
 }
 
 .hero-title span {
@@ -452,6 +466,30 @@ a,
   transform: translateX(-50%) translateY(0);
 }
 
+.globe-caption {
+  width: min(360px, 75vw);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #e8e2db 100%);
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  box-shadow: var(--lift-2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.hero-globe:hover + .globe-caption,
+.hero-globe.show-label + .globe-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
 
 .section {
   padding: 80px 0;
@@ -781,6 +819,17 @@ a,
   .mobile-nav {
     font-size: 46px;
   }
+  .hero-visual {
+    align-items: center;
+  }
+  .globe-center {
+    display: none;
+  }
+  .globe-caption {
+    display: flex;
+    background: linear-gradient(180deg, #232525 0%, #151515 100%);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
   .stats-bars {
     grid-template-columns: 1fr;
   }
@@ -800,7 +849,7 @@ a,
   --reveal-offset: 24px;
   --parallax: 0px;
   opacity: 0;
-  transform: translateY(calc(var(--reveal-offset) + var(--parallax)));
+  transform: translateY(calc(var(--reveal-offset) + var(--parallax) + var(--section-parallax, 0px)));
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
@@ -812,6 +861,10 @@ a,
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .hero-layer {
     transform: none;
     transition: none;
   }

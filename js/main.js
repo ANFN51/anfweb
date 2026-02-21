@@ -294,6 +294,8 @@
   const progressBar = document.getElementById("scroll-progress-bar");
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
+  const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
+  const sections = document.querySelectorAll(".section");
   let scrollTicking = false;
 
   const updateScrollEffects = () => {
@@ -310,11 +312,23 @@
       progressBar.style.transform = `scaleX(${progress})`;
     }
 
-    if (heroGlobe) {
-      if (mobileQuery.matches) {
-        const parallax = Math.min(scrollTop * 0.08, 60);
-        heroGlobe.style.setProperty("--parallax", `${parallax}px`);
-      } else {
+    if (mobileQuery.matches && heroSection) {
+      const rect = heroSection.getBoundingClientRect();
+      const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+      const clamped = Math.min(1, Math.max(0, progress));
+      const heroShift = (clamped - 0.5) * 44;
+      heroLayers.forEach((layer) => {
+        const depth = parseFloat(layer.dataset.depth || "0.6");
+        layer.style.setProperty("--layer-shift", `${heroShift * depth}px`);
+      });
+      if (heroGlobe) {
+        heroGlobe.style.setProperty("--parallax", `${heroShift * 0.7}px`);
+      }
+    } else {
+      heroLayers.forEach((layer) => {
+        layer.style.setProperty("--layer-shift", "0px");
+      });
+      if (heroGlobe) {
         heroGlobe.style.setProperty("--parallax", "0px");
       }
     }
@@ -329,6 +343,23 @@
       mobileFocus = Math.min(1, eased * 1.15);
     } else {
       mobileFocus = 0;
+    }
+
+    if (sections.length) {
+      if (mobileQuery.matches) {
+        sections.forEach((section) => {
+          const rect = section.getBoundingClientRect();
+          const center = rect.top + rect.height / 2;
+          const distance = (center - window.innerHeight / 2) / (window.innerHeight / 2);
+          const clamped = Math.max(-1, Math.min(1, distance));
+          const offset = -clamped * 18;
+          section.style.setProperty("--section-parallax", `${offset}px`);
+        });
+      } else {
+        sections.forEach((section) => {
+          section.style.setProperty("--section-parallax", "0px");
+        });
+      }
     }
   };
 
