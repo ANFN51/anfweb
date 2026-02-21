@@ -902,10 +902,15 @@ body.contact-open {
     width: 56px;
     height: 56px;
   }
-  .menu-moon {
-    width: 49px;
-    height: 49px;
-  }
+.menu-moon {
+  width: 49px;
+  height: 49px;
+}
+
+.menu-moon,
+.contact-orb img {
+  border: 2px solid rgba(0, 0, 0, 0.75);
+}
   .hero {
     padding-top: 44px;
   }
