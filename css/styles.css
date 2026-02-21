@@ -709,13 +709,13 @@ a,
 
 @media (max-width: 640px), (hover: none) and (pointer: coarse) {
   body {
-    font-size: 17px;
+    font-size: 19px;
   }
   .hero {
     padding-top: 70px;
   }
   .hero h1 {
-    font-size: clamp(36px, 9vw, 64px);
+    font-size: clamp(40px, 10vw, 72px);
   }
   .hero-actions {
     flex-direction: column;
@@ -724,7 +724,7 @@ a,
     grid-template-columns: 1fr;
   }
   .section-head h2 {
-    font-size: 32px;
+    font-size: 36px;
   }
   .stats-bars {
     grid-template-columns: 1fr;
