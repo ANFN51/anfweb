@@ -54,6 +54,7 @@ body.no-scroll {
 
 html {
   scroll-behavior: smooth;
+  background-color: var(--bg);
 }
 
 a {
@@ -994,19 +995,6 @@ body.contact-open {
   :root {
     --ink: #ffffff;
     --muted: rgba(255, 255, 255, 0.72);
-  }
-  html,
-  body {
-    background: var(--bg) !important;
-    background-color: var(--bg) !important;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 0;
-    pointer-events: none;
   }
   body {
     font-size: 19px;
