@@ -313,8 +313,6 @@ a,
 
 .hero-layer {
   --layer-shift: 0px;
-  transform: translate3d(0, var(--layer-shift), 0);
-  transition: transform 0.4s ease;
   will-change: transform;
 }
 
@@ -901,10 +899,6 @@ body.contact-open {
     --ink: #ffffff;
     --muted: rgba(255, 255, 255, 0.72);
   }
-  html,
-  body {
-    background: var(--bg);
-  }
   body {
     font-size: 19px;
   }
@@ -990,10 +984,6 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
-  .starfield,
-  .grain {
-    display: none;
-  }
 }
 
 @keyframes heroMaskReveal {
@@ -1011,7 +1001,12 @@ body.contact-open {
   --reveal-offset: 24px;
   --parallax: 0px;
   opacity: 0;
-  transform: translateY(calc(var(--reveal-offset) + var(--parallax) + var(--section-parallax, 0px)));
+  transform: translateY(
+    calc(
+      var(--reveal-offset) + var(--parallax) + var(--section-parallax, 0px) +
+        var(--scroll-parallax, 0px) + var(--layer-shift, 0px)
+    )
+  );
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 

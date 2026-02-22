@@ -295,9 +295,9 @@
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
+  const parallaxEls = Array.from(document.querySelectorAll(".reveal, [data-parallax]"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
-  const sections = document.querySelectorAll(".section");
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let autoRenderApplied = false;
   let scrollTicking = false;
@@ -317,11 +317,11 @@
       progressBar.style.transform = `scaleX(${progress})`;
     }
 
-    if (isMobile && heroSection) {
+    if (heroSection && heroLayers.length && !prefersReducedMotion) {
       const rect = heroSection.getBoundingClientRect();
       const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
       const clamped = Math.min(1, Math.max(0, progress));
-      const heroShift = (clamped - 0.5) * 44;
+      const heroShift = (clamped - 0.5) * (isMobile ? 44 : 28);
       heroLayers.forEach((layer) => {
         const depth = parseFloat(layer.dataset.depth || "0.6");
         layer.style.setProperty("--layer-shift", `${heroShift * depth}px`);
@@ -350,19 +350,21 @@
       mobileFocus = 0;
     }
 
-    if (sections.length) {
-      if (isMobile) {
-        sections.forEach((section) => {
-          const rect = section.getBoundingClientRect();
+    if (parallaxEls.length) {
+      if (!prefersReducedMotion) {
+        const viewCenter = window.innerHeight * 0.5;
+        const base = isMobile ? 45 : 70;
+        parallaxEls.forEach((el) => {
+          const rect = el.getBoundingClientRect();
           const center = rect.top + rect.height / 2;
-          const distance = (center - window.innerHeight / 2) / (window.innerHeight / 2);
-          const clamped = Math.max(-1, Math.min(1, distance));
-          const offset = -clamped * 18;
-          section.style.setProperty("--section-parallax", `${offset}px`);
+          const distance = (center - viewCenter) / viewCenter;
+          const depth = parseFloat(el.dataset.parallax || "0.12");
+          const offset = -distance * depth * base;
+          el.style.setProperty("--scroll-parallax", `${offset.toFixed(2)}px`);
         });
       } else {
-        sections.forEach((section) => {
-          section.style.setProperty("--section-parallax", "0px");
+        parallaxEls.forEach((el) => {
+          el.style.setProperty("--scroll-parallax", "0px");
         });
       }
     }
