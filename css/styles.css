@@ -1,10 +1,11 @@
 :root {
-  --bg: #F0F3F7;
-  --ink: #111111;
-  --muted: #040621;
-  --gold: #264b86;
+  --bg: #05070f;
+  --ink: #f7f7ff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --gold: #7aa6ff;
   --sand: #f7f9fc;
   --deep: #0b1c2a;
+  --header-height: 96px;
   --lift-1: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 24px rgba(0, 0, 0, 0.12);
   --lift-2: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 14px 32px rgba(0, 0, 0, 0.16);
   --lift-3: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -71,36 +72,124 @@ a {
 }
 
 .grain {
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 2;
+  display: none;
 }
 
 .starfield {
   position: fixed;
-  inset: -20%;
+  inset: -35%;
   background-color: var(--bg);
   background-image:
-    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.7), transparent 40%),
-    radial-gradient(1px 1px at 70% 20%, rgba(255, 255, 255, 0.6), transparent 45%),
-    radial-gradient(1.5px 1.5px at 40% 80%, rgba(255, 255, 255, 0.5), transparent 40%),
-    radial-gradient(1px 1px at 85% 70%, rgba(255, 255, 255, 0.45), transparent 45%),
-    radial-gradient(2px 2px at 15% 75%, rgba(255, 255, 255, 0.4), transparent 45%);
-  background-size: 600px 600px;
-  opacity: 0.2;
-  transform: translateY(var(--star-shift, 0px));
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.85), transparent 40%),
+    radial-gradient(1px 1px at 75% 28%, rgba(255, 255, 255, 0.6), transparent 45%),
+    radial-gradient(1.2px 1.2px at 42% 78%, rgba(255, 255, 255, 0.7), transparent 40%),
+    radial-gradient(2px 2px at 82% 68%, rgba(255, 255, 255, 0.55), transparent 45%),
+    radial-gradient(1.5px 1.5px at 20% 85%, rgba(255, 255, 255, 0.5), transparent 45%),
+    radial-gradient(60% 45% at 70% 20%, rgba(63, 110, 200, 0.15), transparent 60%),
+    radial-gradient(45% 40% at 18% 70%, rgba(120, 90, 220, 0.12), transparent 60%);
+  background-size: 720px 720px;
+  opacity: 0.95;
+  transform: translate3d(0, var(--star-shift, 0px), 0);
   transition: transform 0.2s ease-out;
   pointer-events: none;
   z-index: 0;
 }
 
+.parallax-orbs {
+  position: fixed;
+  inset: -15%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.parallax-orb {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+  filter: blur(6px);
+  transform: translate3d(var(--orb-x, 0px), var(--orb-y, 0px), 0);
+  will-change: transform;
+  mix-blend-mode: screen;
+}
+
+.orb-1 {
+  width: 520px;
+  height: 520px;
+  top: -12%;
+  left: -14%;
+  background: radial-gradient(circle at 30% 30%, rgba(90, 150, 255, 0.55), transparent 70%);
+}
+
+.orb-2 {
+  width: 420px;
+  height: 420px;
+  top: 8%;
+  right: -10%;
+  background: radial-gradient(circle at 40% 40%, rgba(170, 120, 255, 0.45), transparent 70%);
+}
+
+.orb-3 {
+  width: 620px;
+  height: 620px;
+  top: 48%;
+  left: 55%;
+  background: radial-gradient(circle at 40% 35%, rgba(80, 120, 220, 0.5), transparent 72%);
+}
+
+.orb-4 {
+  width: 360px;
+  height: 360px;
+  top: 68%;
+  left: -6%;
+  background: radial-gradient(circle at 50% 40%, rgba(120, 200, 255, 0.4), transparent 70%);
+}
+
+.orb-5 {
+  width: 480px;
+  height: 480px;
+  top: 115%;
+  left: 18%;
+  background: radial-gradient(circle at 40% 40%, rgba(110, 90, 220, 0.45), transparent 72%);
+}
+
+.starfield::before,
+.starfield::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.starfield::before {
+  background-image:
+    radial-gradient(1px 1px at 8% 30%, rgba(255, 255, 255, 0.7), transparent 40%),
+    radial-gradient(1.4px 1.4px at 58% 12%, rgba(255, 255, 255, 0.6), transparent 45%),
+    radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.65), transparent 40%),
+    radial-gradient(35% 30% at 20% 20%, rgba(60, 140, 255, 0.12), transparent 55%);
+  background-size: 900px 900px;
+  opacity: 0.7;
+  transform: translate3d(0, var(--star-shift-slow, 0px), 0);
+}
+
+.starfield::after {
+  background-image:
+    radial-gradient(2px 2px at 30% 20%, rgba(255, 255, 255, 0.55), transparent 45%),
+    radial-gradient(1.6px 1.6px at 68% 80%, rgba(255, 255, 255, 0.5), transparent 40%),
+    radial-gradient(1px 1px at 45% 55%, rgba(255, 255, 255, 0.6), transparent 45%),
+    radial-gradient(50% 35% at 80% 75%, rgba(35, 70, 150, 0.18), transparent 60%);
+  background-size: 560px 560px;
+  opacity: 0.55;
+  transform: translate3d(0, var(--star-shift-fast, 0px), 0);
+}
+
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 20;
   backdrop-filter: blur(16px);
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   border-bottom: 1px solid rgba(17, 17, 17, 0.08);
@@ -111,6 +200,10 @@ main,
 .site-footer {
   position: relative;
   z-index: 3;
+}
+
+main {
+  padding-top: var(--header-height);
 }
 
 .site-header .container {
@@ -280,7 +373,7 @@ a,
 }
 
 .hero {
-  padding: 90px 0 80px;
+  padding: 60px 0 80px;
 }
 
 .hero-grid {
@@ -462,17 +555,18 @@ a,
   bottom: 12px;
   transform: translateX(-50%);
   padding: 8px 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #e8e2db 100%);
+  background: transparent;
   border-radius: 999px;
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  border: 1px solid rgba(17, 17, 17, 0.15);
-  box-shadow: var(--lift-2);
+  border: none;
+  box-shadow: none;
   pointer-events: none;
   opacity: 0;
   transform: translateX(-50%) translateY(6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  color: #ffffff;
 }
 
 .hero-globe:hover .globe-center,
@@ -487,17 +581,18 @@ a,
   align-items: center;
   justify-content: center;
   padding: 8px 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #e8e2db 100%);
+  background: transparent;
   border-radius: 999px;
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  border: 1px solid rgba(17, 17, 17, 0.15);
-  box-shadow: var(--lift-2);
+  border: none;
+  box-shadow: none;
   pointer-events: none;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  color: #ffffff;
 }
 
 .hero-globe:hover + .globe-caption,
@@ -993,15 +1088,7 @@ body.contact-open {
 
 @media (max-width: 640px), (hover: none) and (pointer: coarse) {
   :root {
-    --bg: #05070f;
-    --ink: #f7f7ff;
-    --muted: rgba(255, 255, 255, 0.72);
-    --gold: #7aa6ff;
-  }
-  html,
-  body {
-    background: var(--bg);
-    background-color: var(--bg);
+    --header-height: 88px;
   }
   body {
     font-size: 19px;
@@ -1016,7 +1103,7 @@ body.contact-open {
   }
 
   .hero {
-    padding-top: 44px;
+    padding-top: 24px;
   }
   .hero h1 {
     font-size: clamp(62px, 15vw, 112px);
@@ -1076,8 +1163,8 @@ body.contact-open {
   }
   .globe-caption {
     display: flex;
-    background: linear-gradient(180deg, #232525 0%, #151515 100%);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: transparent;
+    border: none;
   }
   .stats-bars {
     grid-template-columns: 1fr;
@@ -1087,52 +1174,6 @@ body.contact-open {
   }
   .menu-toggle {
     display: flex;
-  }
-  .grain {
-    display: none !important;
-  }
-  .starfield {
-    display: block;
-    inset: -35%;
-    opacity: 0.95;
-    background-color: var(--bg);
-    background-image:
-      radial-gradient(1.5px 1.5px at 12% 18%, rgba(255, 255, 255, 0.85), transparent 40%),
-      radial-gradient(1px 1px at 75% 28%, rgba(255, 255, 255, 0.6), transparent 45%),
-      radial-gradient(1.2px 1.2px at 42% 78%, rgba(255, 255, 255, 0.7), transparent 40%),
-      radial-gradient(2px 2px at 82% 68%, rgba(255, 255, 255, 0.55), transparent 45%),
-      radial-gradient(1.5px 1.5px at 20% 85%, rgba(255, 255, 255, 0.5), transparent 45%),
-      radial-gradient(60% 45% at 70% 20%, rgba(63, 110, 200, 0.15), transparent 60%),
-      radial-gradient(45% 40% at 18% 70%, rgba(120, 90, 220, 0.12), transparent 60%);
-    background-size: 720px 720px;
-    transform: translate3d(0, var(--star-shift, 0px), 0);
-  }
-  .starfield::before,
-  .starfield::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .starfield::before {
-    background-image:
-      radial-gradient(1px 1px at 8% 30%, rgba(255, 255, 255, 0.7), transparent 40%),
-      radial-gradient(1.4px 1.4px at 58% 12%, rgba(255, 255, 255, 0.6), transparent 45%),
-      radial-gradient(1px 1px at 90% 45%, rgba(255, 255, 255, 0.65), transparent 40%),
-      radial-gradient(35% 30% at 20% 20%, rgba(60, 140, 255, 0.12), transparent 55%);
-    background-size: 900px 900px;
-    opacity: 0.7;
-    transform: translate3d(0, var(--star-shift-slow, 0px), 0);
-  }
-  .starfield::after {
-    background-image:
-      radial-gradient(2px 2px at 30% 20%, rgba(255, 255, 255, 0.55), transparent 45%),
-      radial-gradient(1.6px 1.6px at 68% 80%, rgba(255, 255, 255, 0.5), transparent 40%),
-      radial-gradient(1px 1px at 45% 55%, rgba(255, 255, 255, 0.6), transparent 45%),
-      radial-gradient(50% 35% at 80% 75%, rgba(35, 70, 150, 0.18), transparent 60%);
-    background-size: 560px 560px;
-    opacity: 0.55;
-    transform: translate3d(0, var(--star-shift-fast, 0px), 0);
   }
   .media-grid {
     grid-template-columns: 1fr;

@@ -296,6 +296,7 @@
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
   const parallaxEls = Array.from(document.querySelectorAll(".reveal, [data-parallax]"));
+  const orbs = Array.from(document.querySelectorAll(".parallax-orb"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -309,13 +310,13 @@
     const isMobile = mobileQuery.matches;
 
     if (starfield) {
-      const base = isMobile ? 0.18 : 0.08;
+      const base = isMobile ? 0.22 : 0.16;
       const shift = scrollTop * base;
       const slow = shift * 0.5;
-      const fast = shift * 1.15;
-      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 220 : 120)}px`);
-      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 140 : 80)}px`);
-      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 280 : 160)}px`);
+      const fast = shift * 1.05;
+      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 200 : 140)}px`);
+      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 120 : 90)}px`);
+      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 240 : 160)}px`);
     }
 
     if (progressBar) {
@@ -357,19 +358,40 @@
 
     if (parallaxEls.length) {
       if (!prefersReducedMotion) {
-        const viewCenter = window.innerHeight * 0.5;
-        const base = isMobile ? 45 : 70;
+        const base = isMobile ? 160 : 220;
         parallaxEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
-          const center = rect.top + rect.height / 2;
-          const distance = (center - viewCenter) / viewCenter;
+          const start = window.innerHeight;
+          const end = -rect.height * 0.2;
+          const raw = (start - rect.top) / (start - end);
+          const clamped = Math.min(1, Math.max(0, raw));
+          const eased = clamped * clamped * (3 - 2 * clamped);
           const depth = parseFloat(el.dataset.parallax || "0.12");
-          const offset = -distance * depth * base;
+          const offset = (1 - eased) * base * depth;
           el.style.setProperty("--scroll-parallax", `${offset.toFixed(2)}px`);
         });
       } else {
         parallaxEls.forEach((el) => {
           el.style.setProperty("--scroll-parallax", "0px");
+        });
+      }
+    }
+
+    if (orbs.length) {
+      if (!prefersReducedMotion) {
+        const driftBase = isMobile ? 0.2 : 0.14;
+        orbs.forEach((orb, index) => {
+          const depth = parseFloat(orb.dataset.depth || "0.2");
+          const y = -scrollTop * driftBase * depth;
+          const sway = Math.sin(scrollTop * 0.0016 + index) * 26 * depth;
+          const swayY = Math.cos(scrollTop * 0.0011 + index) * 12 * depth;
+          orb.style.setProperty("--orb-x", `${sway.toFixed(2)}px`);
+          orb.style.setProperty("--orb-y", `${(y + swayY).toFixed(2)}px`);
+        });
+      } else {
+        orbs.forEach((orb) => {
+          orb.style.setProperty("--orb-x", "0px");
+          orb.style.setProperty("--orb-y", "0px");
         });
       }
     }
