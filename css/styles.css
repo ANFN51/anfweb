@@ -313,6 +313,8 @@ a,
 
 .hero-layer {
   --layer-shift: 0px;
+  transform: translate3d(0, var(--layer-shift), 0);
+  transition: transform 0.4s ease;
   will-change: transform;
 }
 
@@ -899,18 +901,6 @@ body.contact-open {
     --ink: #ffffff;
     --muted: rgba(255, 255, 255, 0.72);
   }
-  html,
-  body {
-    background: var(--bg) !important;
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 0;
-    pointer-events: none;
-  }
   body {
     font-size: 19px;
   }
@@ -918,10 +908,10 @@ body.contact-open {
     width: 56px;
     height: 56px;
   }
-.menu-moon {
-  width: 49px;
-  height: 49px;
-}
+  .menu-moon {
+    width: 49px;
+    height: 49px;
+  }
 
   .hero {
     padding-top: 44px;
@@ -995,10 +985,6 @@ body.contact-open {
   }
   .menu-toggle {
     display: flex;
-  }
-  .starfield,
-  .grain {
-    display: none !important;
   }
 }
 
