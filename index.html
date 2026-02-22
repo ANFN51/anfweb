@@ -9,8 +9,8 @@
   <style>
     html, body { background: #F0F3F7; background-color: #F0F3F7; }
   </style>
-  <link rel="preload" as="image" href="moon.png" />
-  <link rel="preload" as="image" href="assets/moon.png" />
+  <link rel="preload" as="image" href="assets/moon-256.png" />
+  <link rel="preload" as="image" href="assets/moon-512.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Coiny&display=swap" rel="stylesheet" />
@@ -33,7 +33,18 @@
         <a href="#contact">Contact</a>
       </nav>
       <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="Open menu">
-        <img class="menu-moon" src="assets/moon.png" data-fallback="https://assets.science.nasa.gov/content/dam/science/psd/earths-moon/outreach-materials/NASA-LRO-Moon-mosaic.png" alt="" aria-hidden="true" loading="eager" decoding="async" fetchpriority="high" />
+        <img
+          class="menu-moon"
+          src="assets/moon-256.png"
+          srcset="assets/moon-256.png 256w, assets/moon-512.png 512w"
+          sizes="49px"
+          data-fallback="https://assets.science.nasa.gov/content/dam/science/psd/earths-moon/outreach-materials/NASA-LRO-Moon-mosaic.png"
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+        />
       </button>
     </div>
   </header>
@@ -254,7 +265,16 @@
   </footer>
 
   <button class="contact-orb" type="button" aria-label="Open contact info" aria-controls="contact-panel" aria-expanded="false">
-    <img src="moon.png" alt="" aria-hidden="true" loading="eager" decoding="async" fetchpriority="high" />
+    <img
+      src="assets/moon-256.png"
+      srcset="assets/moon-256.png 256w, assets/moon-512.png 512w"
+      sizes="72px"
+      alt=""
+      aria-hidden="true"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
+    />
   </button>
 
   <div class="contact-panel" id="contact-panel" role="dialog" aria-modal="true" aria-hidden="true">
