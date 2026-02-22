@@ -899,6 +899,18 @@ body.contact-open {
     --ink: #ffffff;
     --muted: rgba(255, 255, 255, 0.72);
   }
+  html,
+  body {
+    background: var(--bg) !important;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 0;
+    pointer-events: none;
+  }
   body {
     font-size: 19px;
   }
@@ -984,13 +996,9 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
-  .starfield {
-    background-image: none;
-    background-color: var(--bg);
-    opacity: 1;
-  }
+  .starfield,
   .grain {
-    display: none;
+    display: none !important;
   }
 }
 
