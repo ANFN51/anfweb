@@ -984,6 +984,14 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
+  .starfield {
+    background-image: none;
+    background-color: var(--bg);
+    opacity: 1;
+  }
+  .grain {
+    display: none;
+  }
 }
 
 @keyframes heroMaskReveal {
