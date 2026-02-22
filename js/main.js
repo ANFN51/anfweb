@@ -349,13 +349,13 @@
     }
 
     if (starfield) {
-      const base = isMobile ? 0.22 : 0.16;
+      const base = isMobile ? 0.14 : 0.16;
       const shift = scrollTop * base;
       const slow = shift * 0.5;
       const fast = shift * 1.05;
-      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 200 : 140)}px`);
-      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 120 : 90)}px`);
-      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 240 : 160)}px`);
+      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 120 : 140)}px`);
+      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 80 : 90)}px`);
+      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 150 : 160)}px`);
     }
 
     if (progressBar) {
@@ -417,12 +417,12 @@
 
     if (orbs.length) {
       if (!prefersReducedMotion) {
-        const driftBase = isMobile ? 0.2 : 0.14;
+        const driftBase = isMobile ? 0.12 : 0.14;
         orbs.forEach((orb, index) => {
           const depth = parseFloat(orb.dataset.depth || "0.2");
           const y = -scrollTop * driftBase * depth;
-          const sway = Math.sin(scrollTop * 0.0016 + index) * 26 * depth;
-          const swayY = Math.cos(scrollTop * 0.0011 + index) * 12 * depth;
+          const sway = Math.sin(scrollTop * 0.001 + index) * 18 * depth;
+          const swayY = Math.cos(scrollTop * 0.0008 + index) * 8 * depth;
           orb.style.setProperty("--orb-x", `${sway.toFixed(2)}px`);
           orb.style.setProperty("--orb-y", `${(y + swayY).toFixed(2)}px`);
         });
@@ -456,14 +456,18 @@
     }
   };
 
-  window.addEventListener("scroll", () => {
-    if (scrollTicking) return;
-    scrollTicking = true;
-    requestAnimationFrame(() => {
-      updateScrollEffects();
-      scrollTicking = false;
-    });
-  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(() => {
+        updateScrollEffects();
+        scrollTicking = false;
+      });
+    },
+    { passive: true }
+  );
 
   window.addEventListener("resize", updateScrollEffects);
   updateScrollEffects();
