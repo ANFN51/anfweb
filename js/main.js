@@ -332,6 +332,7 @@
   const starfield = document.querySelector(".starfield");
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
+  const globeCaption = document.querySelector(".globe-caption");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
   const parallaxTargets = Array.from(document.querySelectorAll("[data-parallax]"));
   const revealParallaxEls = Array.from(document.querySelectorAll(".reveal"));
@@ -364,7 +365,21 @@
       if (heroGlobe) {
         heroGlobe.style.setProperty("--parallax", "0px");
       }
-      mobileFocus = 0;
+      if (heroSection) {
+        const heroTop = heroSection.offsetTop;
+        const heroHeight = heroSection.offsetHeight || 1;
+        const start = heroTop - window.innerHeight * 0.2;
+        const end = heroTop + heroHeight * 0.7;
+        const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
+        const eased = progress * progress * (3 - 2 * progress);
+        mobileFocus = Math.min(1, eased * 1.1);
+      } else {
+        mobileFocus = 0;
+      }
+      if (globeCaption) {
+        globeCaption.style.setProperty("--caption-opacity", mobileFocus.toFixed(3));
+        globeCaption.style.setProperty("--caption-shift", `${(1 - mobileFocus) * 10}px`);
+      }
       const mobileParallax = parallaxTargets.length ? parallaxTargets : revealParallaxEls;
       mobileParallax.forEach((el) => el.style.setProperty("--scroll-parallax", "0px"));
       orbs.forEach((orb) => {
@@ -384,6 +399,10 @@
       return;
     }
 
+    if (globeCaption) {
+      globeCaption.style.removeProperty("--caption-opacity");
+      globeCaption.style.removeProperty("--caption-shift");
+    }
     if (header) {
       header.classList.toggle("is-scrolled", scrollTop > 12);
     }
@@ -500,20 +519,18 @@
     }
   };
 
-  if (!mobileQuery.matches) {
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (scrollTicking) return;
-        scrollTicking = true;
-        requestAnimationFrame(() => {
-          updateScrollEffects();
-          scrollTicking = false;
-        });
-      },
-      { passive: true }
-    );
-  }
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(() => {
+        updateScrollEffects();
+        scrollTicking = false;
+      });
+    },
+    { passive: true }
+  );
 
   window.addEventListener("resize", updateScrollEffects);
   updateScrollEffects();

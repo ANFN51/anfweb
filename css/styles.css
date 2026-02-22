@@ -607,16 +607,16 @@ a,
   border: none;
   box-shadow: none;
   pointer-events: none;
-  opacity: 0;
-  transform: translateY(6px);
+  opacity: var(--caption-opacity, 0);
+  transform: translateY(var(--caption-shift, 6px));
   transition: opacity 0.25s ease, transform 0.25s ease;
   color: #ffffff;
 }
 
 .hero-globe:hover + .globe-caption,
 .hero-globe.show-label + .globe-caption {
-  opacity: 1;
-  transform: translateY(0);
+  --caption-opacity: 1;
+  --caption-shift: 0px;
 }
 
 .section {
