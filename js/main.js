@@ -1,16 +1,4 @@
 (() => {
-  const setViewportHeight = (force = false) => {
-    const height = window.innerHeight;
-    const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--vh")) || 0;
-    const next = height * 0.01;
-    if (force || Math.abs(next - current) > 0.2) {
-      document.documentElement.style.setProperty("--vh", `${next}px`);
-    }
-  };
-  setViewportHeight(true);
-  window.addEventListener("orientationchange", () => setViewportHeight(true));
-  window.addEventListener("resize", () => setViewportHeight(false));
-
   const canvas = document.getElementById("globe");
   const container = canvas.parentElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -357,6 +345,41 @@
     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
     const isMobile = mobileQuery.matches;
 
+    if (isMobile) {
+      if (header) {
+        header.classList.remove("is-scrolled");
+      }
+      if (starfield) {
+        starfield.style.setProperty("--star-shift", "0px");
+        starfield.style.setProperty("--star-shift-slow", "0px");
+        starfield.style.setProperty("--star-shift-fast", "0px");
+      }
+      heroLayers.forEach((layer) => {
+        layer.style.setProperty("--layer-shift", "0px");
+      });
+      if (heroGlobe) {
+        heroGlobe.style.setProperty("--parallax", "0px");
+      }
+      mobileFocus = 0;
+      const mobileParallax = parallaxTargets.length ? parallaxTargets : revealParallaxEls;
+      mobileParallax.forEach((el) => el.style.setProperty("--scroll-parallax", "0px"));
+      orbs.forEach((orb) => {
+        orb.style.setProperty("--orb-x", "0px");
+        orb.style.setProperty("--orb-y", "0px");
+      });
+      document.body.classList.toggle(
+        "render-words-auto",
+        heroWordInners.length > 0 && !prefersReducedMotion
+      );
+      if (!autoRenderApplied && heroWordInners.length && !prefersReducedMotion) {
+        heroWordInners.forEach((word, index) => {
+          word.style.setProperty("--word-delay", `${index * 0.12}s`);
+        });
+        autoRenderApplied = true;
+      }
+      return;
+    }
+
     if (header) {
       header.classList.toggle("is-scrolled", scrollTop > 12);
     }
@@ -410,9 +433,7 @@
       mobileFocus = 0;
     }
 
-    const parallaxEls = isMobile
-      ? parallaxTargets
-      : Array.from(new Set([...parallaxTargets, ...revealParallaxEls]));
+    const parallaxEls = Array.from(new Set([...parallaxTargets, ...revealParallaxEls]));
 
     if (parallaxEls.length) {
       if (!prefersReducedMotion) {
@@ -434,7 +455,7 @@
       }
     }
 
-    if (!isMobile && orbs.length) {
+    if (orbs.length) {
       if (!prefersReducedMotion) {
         const driftBase = 0.14;
         orbs.forEach((orb, index) => {
@@ -475,18 +496,20 @@
     }
   };
 
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (scrollTicking) return;
-      scrollTicking = true;
-      requestAnimationFrame(() => {
-        updateScrollEffects();
-        scrollTicking = false;
-      });
-    },
-    { passive: true }
-  );
+  if (!mobileQuery.matches) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (scrollTicking) return;
+        scrollTicking = true;
+        requestAnimationFrame(() => {
+          updateScrollEffects();
+          scrollTicking = false;
+        });
+      },
+      { passive: true }
+    );
+  }
 
   window.addEventListener("resize", updateScrollEffects);
   updateScrollEffects();
