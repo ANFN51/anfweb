@@ -562,14 +562,12 @@
       menu.classList.add("is-open");
       menu.setAttribute("aria-hidden", "false");
       menuToggle.setAttribute("aria-expanded", "true");
-      document.body.classList.add("no-scroll");
     };
 
     const closeMenu = () => {
       menu.classList.remove("is-open");
       menu.setAttribute("aria-hidden", "true");
       menuToggle.setAttribute("aria-expanded", "false");
-      document.body.classList.remove("no-scroll");
     };
 
     menuToggle.addEventListener("click", openMenu);
@@ -594,14 +592,12 @@
       contactPanel.classList.add("is-open");
       contactPanel.setAttribute("aria-hidden", "false");
       contactOrb.setAttribute("aria-expanded", "true");
-      document.body.classList.add("contact-open");
     };
 
     const closeContact = () => {
       contactPanel.classList.remove("is-open");
       contactPanel.setAttribute("aria-hidden", "true");
       contactOrb.setAttribute("aria-expanded", "false");
-      document.body.classList.remove("contact-open");
     };
 
     contactOrb.addEventListener("click", openContact);

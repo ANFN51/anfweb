@@ -41,9 +41,6 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
-body.no-scroll {
-  overflow: hidden;
-}
 
 html {
   background-color: var(--bg);
@@ -1059,9 +1056,6 @@ a,
   transform: translateY(0) scale(1);
 }
 
-body.contact-open {
-  overflow: hidden;
-}
 
 .site-footer .container {
   display: flex;
