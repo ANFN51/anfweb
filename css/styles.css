@@ -612,6 +612,96 @@ a,
   perspective-origin: center;
 }
 
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.media-card {
+  background: var(--card-bg);
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: var(--lift-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 16px;
+  color: #f6f2eb;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.media-card:nth-child(2) {
+  margin-top: 10px;
+}
+
+.media-card:nth-child(3) {
+  margin-top: 18px;
+}
+
+.media-card:nth-child(4) {
+  margin-top: 6px;
+}
+
+.media-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.25);
+}
+
+.media-thumb {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(130deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 55%);
+}
+
+.media-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 55%);
+  opacity: 0.7;
+}
+
+.media-video::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(6, 21, 64, 0.6) 0%, rgba(12, 43, 105, 0.65) 100%);
+}
+
+.media-photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(27, 24, 20, 0.55) 0%, rgba(77, 64, 57, 0.65) 100%);
+}
+
+.media-label {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  background: rgba(0, 0, 0, 0.45);
+  color: #f6f2eb;
+  z-index: 1;
+}
+
+.media-info h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: inherit;
+}
+
+.media-info p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .list-item {
   --lift: 0px;
   --scale: 1;
@@ -890,6 +980,9 @@ body.contact-open {
   .stats-bars {
     grid-template-columns: 1fr;
   }
+  .media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .site-footer .container {
     flex-direction: column;
     gap: 16px;
@@ -985,6 +1078,12 @@ body.contact-open {
   }
   .menu-toggle {
     display: flex;
+  }
+  .media-grid {
+    grid-template-columns: 1fr;
+  }
+  .media-card {
+    margin-top: 0;
   }
 }
 
