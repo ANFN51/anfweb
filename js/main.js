@@ -338,7 +338,6 @@
   }
 
   const starfield = document.querySelector(".starfield");
-  const progressBar = document.getElementById("scroll-progress-bar");
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
@@ -377,9 +376,6 @@
       }
     }
 
-    if (progressBar) {
-      progressBar.style.transform = `scaleX(${progress})`;
-    }
 
     if (heroSection && heroLayers.length && !prefersReducedMotion) {
       const rect = heroSection.getBoundingClientRect();
