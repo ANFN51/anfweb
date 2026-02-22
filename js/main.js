@@ -330,13 +330,15 @@
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
-  const parallaxEls = Array.from(document.querySelectorAll(".reveal, [data-parallax]"));
+  const parallaxTargets = Array.from(document.querySelectorAll("[data-parallax]"));
+  const revealParallaxEls = Array.from(document.querySelectorAll(".reveal"));
   const orbs = Array.from(document.querySelectorAll(".parallax-orb"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let autoRenderApplied = false;
   let scrollTicking = false;
+  let lastStarUpdate = 0;
 
   const updateScrollEffects = () => {
     const scrollTop = window.scrollY || window.pageYOffset;
@@ -349,13 +351,18 @@
     }
 
     if (starfield) {
-      const base = isMobile ? 0.14 : 0.16;
-      const shift = scrollTop * base;
-      const slow = shift * 0.5;
-      const fast = shift * 1.05;
-      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 120 : 140)}px`);
-      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 80 : 90)}px`);
-      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 150 : 160)}px`);
+      const now = performance.now();
+      const minDelta = isMobile ? 60 : 16;
+      if (!isMobile || now - lastStarUpdate >= minDelta) {
+        const base = isMobile ? 0.08 : 0.16;
+        const shift = scrollTop * base;
+        const slow = shift * 0.5;
+        const fast = shift * 1.05;
+        starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 70 : 140)}px`);
+        starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 50 : 90)}px`);
+        starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 90 : 160)}px`);
+        lastStarUpdate = now;
+      }
     }
 
     if (progressBar) {
@@ -395,9 +402,13 @@
       mobileFocus = 0;
     }
 
+    const parallaxEls = isMobile
+      ? parallaxTargets
+      : Array.from(new Set([...parallaxTargets, ...revealParallaxEls]));
+
     if (parallaxEls.length) {
       if (!prefersReducedMotion) {
-        const base = isMobile ? 200 : 260;
+        const base = isMobile ? 80 : 260;
         parallaxEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
           const center = rect.top + rect.height / 2;
@@ -415,9 +426,9 @@
       }
     }
 
-    if (orbs.length) {
+    if (!isMobile && orbs.length) {
       if (!prefersReducedMotion) {
-        const driftBase = isMobile ? 0.12 : 0.14;
+        const driftBase = 0.14;
         orbs.forEach((orb, index) => {
           const depth = parseFloat(orb.dataset.depth || "0.2");
           const y = -scrollTop * driftBase * depth;

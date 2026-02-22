@@ -1203,6 +1203,13 @@ body.contact-open {
   .menu-toggle {
     display: flex;
   }
+  .parallax-orbs {
+    display: none;
+  }
+  .starfield::before,
+  .starfield::after {
+    opacity: 0;
+  }
   .media-grid {
     grid-template-columns: 1fr;
   }
