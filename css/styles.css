@@ -47,6 +47,8 @@ body {
   background: var(--bg);
   background-color: var(--bg);
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 body.no-scroll {
@@ -57,6 +59,7 @@ html {
   scroll-behavior: smooth;
   background-color: var(--bg);
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
 a {
@@ -1120,6 +1123,9 @@ body.contact-open {
   }
   body {
     font-size: 19px;
+    min-height: calc(var(--vh, 1vh) * 100);
+    overscroll-behavior-y: none;
+    touch-action: pan-y;
   }
   .menu-toggle {
     width: 56px;

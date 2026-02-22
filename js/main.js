@@ -1,4 +1,16 @@
 (() => {
+  const setViewportHeight = (force = false) => {
+    const height = window.innerHeight;
+    const current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--vh")) || 0;
+    const next = height * 0.01;
+    if (force || Math.abs(next - current) > 0.2) {
+      document.documentElement.style.setProperty("--vh", `${next}px`);
+    }
+  };
+  setViewportHeight(true);
+  window.addEventListener("orientationchange", () => setViewportHeight(true));
+  window.addEventListener("resize", () => setViewportHeight(false));
+
   const canvas = document.getElementById("globe");
   const container = canvas.parentElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
