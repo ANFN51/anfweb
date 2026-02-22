@@ -31,6 +31,7 @@ body {
   position: relative;
   width: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -61,6 +62,14 @@ a {
 
 .grain {
   display: none;
+}
+
+.background-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .starfield {
