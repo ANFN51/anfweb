@@ -309,8 +309,13 @@
     const isMobile = mobileQuery.matches;
 
     if (starfield) {
-      const shift = Math.min(scrollTop * 0.08, 120);
-      starfield.style.setProperty("--star-shift", `${shift}px`);
+      const base = isMobile ? 0.18 : 0.08;
+      const shift = scrollTop * base;
+      const slow = shift * 0.5;
+      const fast = shift * 1.15;
+      starfield.style.setProperty("--star-shift", `${Math.min(shift, isMobile ? 220 : 120)}px`);
+      starfield.style.setProperty("--star-shift-slow", `${Math.min(slow, isMobile ? 140 : 80)}px`);
+      starfield.style.setProperty("--star-shift-fast", `${Math.min(fast, isMobile ? 280 : 160)}px`);
     }
 
     if (progressBar) {
