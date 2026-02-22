@@ -90,21 +90,35 @@
   let currentX = globeGroup.rotation.x;
   let currentY = globeGroup.rotation.y;
   let spinY = currentY;
-  let focusLebanon = false;
   let mobileFocus = 0;
+  let hoverX = 0;
+  let hoverY = 0;
+  let hoverActive = false;
 
   container.addEventListener("mouseenter", () => {
-    focusLebanon = true;
+    hoverActive = true;
   });
 
   container.addEventListener("mouseleave", () => {
-    focusLebanon = false;
+    hoverActive = false;
+    hoverX = 0;
+    hoverY = 0;
     spinY = currentY;
   });
 
+  container.addEventListener("mousemove", (event) => {
+    if (mobileQuery.matches) return;
+    const rect = container.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    hoverY = x * 1.2;
+    hoverX = -y * 0.9;
+  });
+
   function animate() {
-    spinY += 0.0016;
-    const baseX = Math.sin(Date.now() * 0.0002) * 0.03;
+    spinY += mobileQuery.matches ? 0.0016 : 0.0028;
+    const now = Date.now();
+    const baseX = Math.sin(now * 0.0002) * 0.03;
     const baseY = spinY;
 
     if (mobileQuery.matches) {
@@ -112,16 +126,18 @@
       const targetY = lerpAngle(baseY, lebanonTarget.y, mobileFocus);
       currentX = lerpAngle(currentX, targetX, 0.1);
       currentY = lerpAngle(currentY, targetY, 0.1);
-    } else if (!focusLebanon) {
+    } else if (hoverActive) {
+      const targetX = baseX + hoverX;
+      const targetY = baseY + hoverY;
+      currentX = lerpAngle(currentX, targetX, 0.22);
+      currentY = lerpAngle(currentY, targetY, 0.22);
+    } else {
       currentX = lerpAngle(currentX, baseX, 0.06);
       currentY = lerpAngle(currentY, baseY, 0.06);
-    } else {
-      currentX = lerpAngle(currentX, lebanonTarget.x, 0.08);
-      currentY = lerpAngle(currentY, lebanonTarget.y, 0.08);
     }
 
     globeGroup.rotation.set(currentX, currentY, 0);
-    container.classList.toggle("show-label", focusLebanon || mobileFocus > 0.15);
+    container.classList.toggle("show-label", mobileQuery.matches && mobileFocus > 0.15);
     clouds.rotation.y += 0.0022;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
