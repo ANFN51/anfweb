@@ -277,18 +277,22 @@
   }
 
   const reveals = document.querySelectorAll(".reveal");
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.2 }
-  );
-  reveals.forEach((el) => revealObserver.observe(el));
+  if (mobileQuery.matches) {
+    reveals.forEach((el) => el.classList.add("is-visible"));
+  } else {
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    reveals.forEach((el) => revealObserver.observe(el));
+  }
 
   const header = document.querySelector(".site-header");
   const navLinks = Array.from(document.querySelectorAll(".nav a"));
