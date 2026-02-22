@@ -6,6 +6,8 @@
   --sand: #f7f9fc;
   --deep: #0b1c2a;
   --header-height: 96px;
+  --font-body: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-nav: "Cormorant Garamond", "Times New Roman", serif;
   --lift-1: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 24px rgba(0, 0, 0, 0.12);
   --lift-2: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 14px 32px rgba(0, 0, 0, 0.16);
   --lift-3: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 20px 40px rgba(0, 0, 0, 0.2);
@@ -21,7 +23,7 @@
 html,
 body {
   margin: 0;
-  font-family: "Coiny", "Times New Roman", serif;
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 18px;
   line-height: 1.6;
@@ -223,7 +225,7 @@ main {
 }
 
 .brand {
-  font-family: inherit;
+  font-family: var(--font-nav);
   font-size: 32px;
   letter-spacing: 0.02em;
 }
@@ -233,7 +235,7 @@ h1,
 h2,
 h3,
 .stat-num {
-  font-family: "Coiny", "Times New Roman", serif;
+  font-family: var(--font-body);
   letter-spacing: 0.01em;
   color: var(--ink);
   font-weight: 700;
@@ -259,8 +261,9 @@ a,
   display: flex;
   gap: 28px;
   font-size: 28px;
+  font-family: var(--font-nav);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
 }
 
 .nav a {
@@ -351,12 +354,14 @@ a,
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 12px;
+  font-family: var(--font-nav);
 }
 
 .mobile-nav {
   display: grid;
   gap: 18px;
   font-size: 26px;
+  font-family: var(--font-nav);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -522,12 +527,13 @@ a,
 
 .hero-globe {
   position: relative;
-  width: min(360px, 75vw);
-  height: min(360px, 75vw);
+  width: min(370px, 75vw);
+  height: min(370px, 75vw);
   background: transparent;
   border-radius: 50%;
   filter: none;
   margin-left: auto;
+  margin-top: -10px;
   overflow: hidden;
   --hover-lift: 0px;
   --hover-scale: 1;
@@ -594,7 +600,7 @@ a,
 }
 
 .globe-caption {
-  width: min(360px, 75vw);
+  width: min(370px, 75vw);
   display: none;
   align-items: center;
   justify-content: center;
