@@ -290,6 +290,41 @@
   );
   reveals.forEach((el) => revealObserver.observe(el));
 
+  const header = document.querySelector(".site-header");
+  const navLinks = Array.from(document.querySelectorAll(".nav a"));
+  const sections = Array.from(document.querySelectorAll("section[id]"));
+  if (sections.length && navLinks.length) {
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = `#${entry.target.id}`;
+          navLinks.forEach((link) => {
+            link.classList.toggle("is-active", link.getAttribute("href") === id);
+          });
+        });
+      },
+      { rootMargin: "-20% 0px -60% 0px", threshold: 0.1 }
+    );
+    sections.forEach((section) => sectionObserver.observe(section));
+  }
+
+  const statBars = Array.from(document.querySelectorAll(".stat-bar"));
+  if (statBars.length) {
+    const statsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            statsObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.45 }
+    );
+    statBars.forEach((bar) => statsObserver.observe(bar));
+  }
+
   const starfield = document.querySelector(".starfield");
   const progressBar = document.getElementById("scroll-progress-bar");
   const heroGlobe = document.querySelector(".hero-globe");
@@ -308,6 +343,10 @@
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
     const isMobile = mobileQuery.matches;
+
+    if (header) {
+      header.classList.toggle("is-scrolled", scrollTop > 12);
+    }
 
     if (starfield) {
       const base = isMobile ? 0.22 : 0.16;
@@ -358,16 +397,15 @@
 
     if (parallaxEls.length) {
       if (!prefersReducedMotion) {
-        const base = isMobile ? 160 : 220;
+        const base = isMobile ? 200 : 260;
         parallaxEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
-          const start = window.innerHeight;
-          const end = -rect.height * 0.2;
-          const raw = (start - rect.top) / (start - end);
-          const clamped = Math.min(1, Math.max(0, raw));
-          const eased = clamped * clamped * (3 - 2 * clamped);
+          const center = rect.top + rect.height / 2;
+          const distance = (center - window.innerHeight / 2) / (window.innerHeight / 2);
+          const clamped = Math.max(-1, Math.min(1, distance));
+          const eased = clamped * clamped * clamped;
           const depth = parseFloat(el.dataset.parallax || "0.12");
-          const offset = (1 - eased) * base * depth;
+          const offset = -eased * base * depth;
           el.style.setProperty("--scroll-parallax", `${offset.toFixed(2)}px`);
         });
       } else {

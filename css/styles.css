@@ -193,6 +193,13 @@ a {
   backdrop-filter: blur(16px);
   background: color-mix(in srgb, var(--bg) 85%, transparent);
   border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.site-header.is-scrolled {
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
 main,
@@ -370,6 +377,15 @@ a,
 
 .nav a:hover::after {
   width: 100%;
+}
+
+.nav a.is-active {
+  opacity: 1;
+}
+
+.nav a.is-active::after {
+  width: 100%;
+  opacity: 0.75;
 }
 
 .hero {
@@ -928,6 +944,11 @@ a,
 .stat-bar:hover .stat-fill {
   filter: brightness(1.08);
   transform: scaleX(var(--level));
+}
+
+.stat-bar.is-visible .stat-fill {
+  transform: scaleX(var(--level));
+  filter: brightness(1.08);
 }
 
 .contact {
