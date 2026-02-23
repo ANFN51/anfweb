@@ -14,6 +14,7 @@
   --card-bg: linear-gradient(180deg, #061540 0%, #071f42 100%);
   --card-bg-hover: linear-gradient(180deg, #0c2b69 0%, #041040 100%);
   --scroll-bounce: 0px;
+  --bg-parallax-y: 0px;
 }
 
 * {
@@ -186,10 +187,12 @@ a {
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
+  transform: translate3d(0, var(--bg-parallax-y, 0px), 0);
   background:
     radial-gradient(circle at 30% 10%, rgba(30, 60, 120, 0.2), transparent 55%),
     radial-gradient(circle at 70% 80%, rgba(15, 30, 70, 0.28), transparent 60%),
     #04060e;
+  will-change: transform;
 }
 
 .milkyway-galaxy {
@@ -600,6 +603,8 @@ a,
 }
 
 .btn {
+  --btn-lift: 0px;
+  --btn-scale: 1;
   background: linear-gradient(180deg, #242322 0%, #151413 100%);
   color: #fff;
   padding: 14px 22px;
@@ -608,6 +613,7 @@ a,
   letter-spacing: 0.02em;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: var(--lift-2);
+  transform: translateY(calc(var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px) * 0.32 + var(--btn-lift))) scale(var(--btn-scale));
   transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
 
@@ -620,18 +626,19 @@ a,
 }
 
 .btn:hover {
-  transform: translateY(-2px);
+  --btn-lift: -2px;
   box-shadow: var(--lift-3);
   filter: brightness(1.02);
 }
 
 .btn:active {
-  transform: translateY(1px) scale(0.98);
+  --btn-lift: 1px;
+  --btn-scale: 0.98;
   box-shadow: var(--lift-1);
 }
 
 .btn.ghost:hover {
-  transform: translateY(-2px);
+  --btn-lift: -2px;
   box-shadow: var(--lift-2);
   filter: brightness(1.02);
 }
@@ -1469,6 +1476,9 @@ a,
 .reveal {
   --reveal-offset: 24px;
   --parallax: 0px;
+  --reveal-delay: 0ms;
+  --reveal-duration: 700ms;
+  --reveal-ease: cubic-bezier(0.22, 0.75, 0.25, 1);
   opacity: 0;
   transform: translateY(
     calc(
@@ -1476,12 +1486,32 @@ a,
         var(--scroll-parallax, 0px) + var(--layer-shift, 0px)
     )
   );
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition:
+    opacity var(--reveal-duration) var(--reveal-ease) var(--reveal-delay),
+    transform var(--reveal-duration) var(--reveal-ease) var(--reveal-delay);
+}
+
+[data-parallax],
+[data-section-depth] {
+  will-change: transform;
+}
+
+.u-reveal {
+  --reveal-offset: 22px;
+}
+
+.u-reveal-stagger {
+  --reveal-delay: calc(var(--reveal-index, 0) * 95ms);
 }
 
 .reveal.is-visible {
   opacity: 1;
   --reveal-offset: 0px;
+}
+
+body.is-scrolling .hero-layer,
+body.is-scrolling .parallax-orb {
+  transition-duration: 0ms !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

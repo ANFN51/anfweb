@@ -918,8 +918,8 @@
     if (mobileQuery.matches || prefersReducedMotion) return;
     const x = (e.clientX / window.innerWidth - 0.5) * 2;
     const y = (e.clientY / window.innerHeight - 0.5) * 2;
-    galaxyTargetX = x * 30;
-    galaxyTargetY = y * 20;
+    galaxyTargetX = x * 16;
+    galaxyTargetY = y * 10;
   });
 
   container.addEventListener("mouseenter", () => {
@@ -1276,7 +1276,8 @@
     };
   }
 
-  const reveals = document.querySelectorAll(".reveal");
+  applyRevealUtilities();
+  const reveals = Array.from(document.querySelectorAll(".reveal"));
 
   // Fade in galaxy after load
   if (milkyway) {
@@ -1290,7 +1291,7 @@
     galaxyImg.src = "assets/milkyway.svg";
   }
 
-  if (mobileQuery.matches) {
+  if (prefersReducedMotion) {
     reveals.forEach((el) => el.classList.add("is-visible"));
   } else {
     const revealObserver = new IntersectionObserver(
@@ -1302,9 +1303,36 @@
           }
         });
       },
-      { threshold: 0.2 }
+      {
+        root: null,
+        rootMargin: mobileQuery.matches ? "0px 0px -8% 0px" : "0px 0px -12% 0px",
+        threshold: mobileQuery.matches ? 0.08 : 0.14
+      }
     );
     reveals.forEach((el) => revealObserver.observe(el));
+  }
+
+  function applyRevealUtilities() {
+    const revealGroups = [
+      ".work-grid .card",
+      ".list .list-item",
+      ".media-grid .media-card",
+      ".stats-bars .stat-bar",
+      ".hero-actions .btn",
+      "#contact .btn"
+    ];
+
+    revealGroups.forEach((selector) => {
+      const items = Array.from(document.querySelectorAll(selector));
+      items.forEach((el, index) => {
+        el.classList.add("reveal", "u-reveal", "u-reveal-stagger");
+        el.style.setProperty("--reveal-index", String(index));
+      });
+    });
+
+    document.querySelectorAll(".reveal").forEach((el) => {
+      el.classList.add("u-reveal");
+    });
   }
 
   const header = document.querySelector(".site-header");
@@ -1326,61 +1354,124 @@
     sections.forEach((section) => sectionObserver.observe(section));
   }
 
-  const statBars = Array.from(document.querySelectorAll(".stat-bar"));
-  if (statBars.length) {
-    const statsObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            statsObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.45 }
-    );
-    statBars.forEach((bar) => statsObserver.observe(bar));
-  }
-
   const heroGlobe = document.querySelector(".hero-globe");
   const heroSection = document.querySelector(".hero");
   const globeCaption = document.querySelector(".globe-caption");
   const heroLayers = Array.from(document.querySelectorAll(".hero-layer"));
   const autoParallaxEls = Array.from(
-    document.querySelectorAll(".card, .list-item, .media-card, .stat-bar")
+    document.querySelectorAll(".card, .list-item, .media-card, .stat-bar, .hero-actions .btn, #contact .btn")
   );
   autoParallaxEls.forEach((el, index) => {
     if (el.dataset.parallax) return;
-    const base = 0.1;
-    const variance = (index % 5) * 0.02;
+    const base = 0.13;
+    const variance = (index % 4) * 0.02;
     el.dataset.parallax = (base + variance).toFixed(2);
   });
   const parallaxTargets = Array.from(document.querySelectorAll("[data-parallax]"));
-  const parallaxEls = parallaxTargets;
-  const sectionParallaxEls = Array.from(document.querySelectorAll("[data-section-depth]"));
+  const sectionParallaxTargets = Array.from(document.querySelectorAll("[data-section-depth]"));
   const orbs = Array.from(document.querySelectorAll(".parallax-orb"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
+  const parallaxMeta = parallaxTargets.map((el) => ({
+    el,
+    depth: parseFloat(el.dataset.parallax || "0.12"),
+    center: 0,
+    target: 0,
+    current: 0,
+    applied: Number.NaN
+  }));
+  const sectionParallaxMeta = sectionParallaxTargets.map((el) => ({
+    el,
+    depth: parseFloat(el.dataset.sectionDepth || "0.2"),
+    center: 0,
+    target: 0,
+    current: 0,
+    applied: Number.NaN
+  }));
+  const orbMeta = orbs.map((el) => ({
+    el,
+    depth: parseFloat(el.dataset.depth || "0.2"),
+    targetX: 0,
+    targetY: 0,
+    currentX: 0,
+    currentY: 0,
+    appliedX: Number.NaN,
+    appliedY: Number.NaN
+  }));
   let autoRenderApplied = false;
   let scrollTicking = false;
+  let resizeTicking = false;
+  let scrollSettleTimer = 0;
   let lastHeavyUpdateAt = 0;
   let lastModeIsMobile = mobileQuery.matches;
+  let lastHeaderScrolled = null;
+  let lastRenderWordsAuto = null;
+  let lastBgParallaxY = Number.NaN;
+  let viewportHeight = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+  let viewportHalf = viewportHeight * 0.5;
+  let documentScrollableHeight = Math.max(
+    1,
+    (document.documentElement.scrollHeight || document.body.scrollHeight || viewportHeight) - viewportHeight
+  );
+  let heroTop = 0;
+  let heroHeight = 1;
 
-  const updateScrollEffects = () => {
+  function refreshScrollMetrics() {
+    const scrollTop = window.scrollY || window.pageYOffset || 0;
+    viewportHeight = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+    viewportHalf = viewportHeight * 0.5;
+    documentScrollableHeight = Math.max(
+      1,
+      (document.documentElement.scrollHeight || document.body.scrollHeight || viewportHeight) - viewportHeight
+    );
+
+    if (heroSection) {
+      const heroRect = heroSection.getBoundingClientRect();
+      heroTop = heroRect.top + scrollTop;
+      heroHeight = Math.max(1, heroRect.height);
+    }
+
+    parallaxMeta.forEach((meta) => {
+      const rect = meta.el.getBoundingClientRect();
+      meta.center = rect.top + scrollTop + rect.height * 0.5;
+    });
+
+    sectionParallaxMeta.forEach((meta) => {
+      const rect = meta.el.getBoundingClientRect();
+      meta.center = rect.top + scrollTop + rect.height * 0.5;
+    });
+  }
+
+  const updateScrollEffects = (forceHeavy = false) => {
     const scrollTop = window.scrollY || window.pageYOffset;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+    const progress = Math.min(1, Math.max(0, scrollTop / documentScrollableHeight));
     const isMobile = mobileQuery.matches;
     const now = performance.now();
-    const heavyInterval = isMobile ? 72 : 28;
-    const runHeavy = now - lastHeavyUpdateAt > heavyInterval;
+    const heavyInterval = isMobile ? 80 : 40;
+    let runHeavy = forceHeavy || now - lastHeavyUpdateAt >= heavyInterval;
+    const viewportCenter = scrollTop + viewportHalf;
 
     if (isMobile !== lastModeIsMobile) {
       if (isMobile) {
-        parallaxEls.forEach((el) => el.style.setProperty("--scroll-parallax", "0px"));
-        sectionParallaxEls.forEach((section) => section.style.setProperty("--section-parallax", "0px"));
+        parallaxMeta.forEach((meta) => {
+          meta.target = 0;
+          meta.current = 0;
+          if (meta.applied !== 0) {
+            meta.el.style.setProperty("--scroll-parallax", "0px");
+            meta.applied = 0;
+          }
+        });
+        sectionParallaxMeta.forEach((meta) => {
+          meta.target = 0;
+          meta.current = 0;
+          if (meta.applied !== 0) {
+            meta.el.style.setProperty("--section-parallax", "0px");
+            meta.applied = 0;
+          }
+        });
       }
       lastModeIsMobile = isMobile;
+      runHeavy = true;
     }
 
     if (!prefersReducedMotion) {
@@ -1398,7 +1489,17 @@
     }
 
     if (header) {
-      header.classList.toggle("is-scrolled", !isMobile && scrollTop > 12);
+      const shouldScrollClass = !isMobile && scrollTop > 12;
+      if (shouldScrollClass !== lastHeaderScrolled) {
+        header.classList.toggle("is-scrolled", shouldScrollClass);
+        lastHeaderScrolled = shouldScrollClass;
+      }
+    }
+
+    const bgParallaxTarget = prefersReducedMotion ? 0 : (0.5 - progress) * (isMobile ? 8 : 14);
+    if (Math.abs(bgParallaxTarget - lastBgParallaxY) > 0.03) {
+      document.documentElement.style.setProperty("--bg-parallax-y", `${bgParallaxTarget.toFixed(2)}px`);
+      lastBgParallaxY = bgParallaxTarget;
     }
 
     if (milkyway) {
@@ -1410,9 +1511,9 @@
         galaxyTargetY = 0;
       } else {
         const eased = progress * progress * (3 - 2 * progress);
-        const driftY = (eased - 0.5) * (isMobile ? 80 : 150);
-        const driftX = Math.sin(progress * Math.PI * 2) * (isMobile ? 14 : 34);
-        const baseRotate = -14 + eased * (isMobile ? 4 : 6);
+        const driftY = (eased - 0.5) * (isMobile ? 10 : 18);
+        const driftX = Math.sin(progress * Math.PI * 2) * (isMobile ? 3 : 7);
+        const baseRotate = -14 + eased * (isMobile ? 0.8 : 1.2);
         galaxyScrollX = driftX;
         galaxyScrollY = driftY;
         galaxyScrollRotate = baseRotate;
@@ -1421,16 +1522,15 @@
 
 
     if (heroSection && heroLayers.length && !prefersReducedMotion) {
-      const rect = heroSection.getBoundingClientRect();
-      const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-      const clamped = Math.min(1, Math.max(0, progress));
-      const heroShift = (clamped - 0.5) * (isMobile ? 18 : 28);
+      const heroProgress = (viewportHeight - (heroTop - scrollTop)) / (viewportHeight + heroHeight);
+      const clampedHero = Math.min(1, Math.max(0, heroProgress));
+      const heroShift = (clampedHero - 0.5) * (isMobile ? 16 : 24);
       heroLayers.forEach((layer) => {
         const depth = parseFloat(layer.dataset.depth || "0.6");
-        layer.style.setProperty("--layer-shift", `${heroShift * depth}px`);
+        layer.style.setProperty("--layer-shift", `${(heroShift * depth).toFixed(2)}px`);
       });
       if (heroGlobe) {
-        heroGlobe.style.setProperty("--parallax", `${heroShift * 0.7}px`);
+        heroGlobe.style.setProperty("--parallax", `${(heroShift * 0.7).toFixed(2)}px`);
       }
     } else {
       heroLayers.forEach((layer) => {
@@ -1442,12 +1542,10 @@
     }
 
     if (isMobile && heroSection) {
-      const heroTop = heroSection.offsetTop;
-      const heroHeight = heroSection.offsetHeight || 1;
-      const start = heroTop - window.innerHeight * 0.2;
+      const start = heroTop - viewportHeight * 0.2;
       const end = heroTop + heroHeight * 0.7;
-      const progress = Math.min(1, Math.max(0, (scrollTop - start) / (end - start)));
-      const eased = progress * progress * (3 - 2 * progress);
+      const heroFocusProgress = Math.min(1, Math.max(0, (scrollTop - start) / Math.max(1, end - start)));
+      const eased = heroFocusProgress * heroFocusProgress * (3 - 2 * heroFocusProgress);
       mobileFocus = Math.min(1, eased * 1.1);
     } else {
       mobileFocus = 0;
@@ -1463,66 +1561,117 @@
       }
     }
 
-    if (parallaxEls.length && runHeavy && !isMobile) {
-      if (!prefersReducedMotion) {
-        const base = 260;
-        parallaxEls.forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          const center = rect.top + rect.height / 2;
-          const distance = (center - window.innerHeight / 2) / (window.innerHeight / 2);
+    if (runHeavy) {
+      if (!prefersReducedMotion && !isMobile) {
+        const base = 230;
+        parallaxMeta.forEach((meta) => {
+          const distance = (meta.center - viewportCenter) / viewportHalf;
+          if (Math.abs(distance) > 1.35) {
+            meta.target = 0;
+            return;
+          }
           const clamped = Math.max(-1, Math.min(1, distance));
-          const eased = clamped * clamped * clamped;
-          const depth = parseFloat(el.dataset.parallax || "0.12");
-          const offset = -eased * base * depth;
-          el.style.setProperty("--scroll-parallax", `${offset.toFixed(2)}px`);
+          const easedDistance = clamped * clamped * clamped;
+          meta.target = -easedDistance * base * meta.depth;
         });
       } else {
-        parallaxEls.forEach((el) => {
-          el.style.setProperty("--scroll-parallax", "0px");
+        parallaxMeta.forEach((meta) => {
+          meta.target = 0;
         });
       }
-    }
 
-    if (sectionParallaxEls.length && runHeavy && !isMobile) {
-      const base = isMobile ? 50 : 110;
-      sectionParallaxEls.forEach((section) => {
-        const rect = section.getBoundingClientRect();
-        const center = rect.top + rect.height / 2;
-        const distance = (center - window.innerHeight / 2) / (window.innerHeight / 2);
-        const clamped = Math.max(-1, Math.min(1, distance));
-        const depth = parseFloat(section.dataset.sectionDepth || "0.2");
-        const offset = -clamped * base * depth;
-        section.style.setProperty("--section-parallax", `${offset.toFixed(1)}px`);
-      });
-    }
+      if (!isMobile) {
+        const base = 95;
+        sectionParallaxMeta.forEach((meta) => {
+          const distance = (meta.center - viewportCenter) / viewportHalf;
+          if (Math.abs(distance) > 1.45) {
+            meta.target = 0;
+            return;
+          }
+          const clamped = Math.max(-1, Math.min(1, distance));
+          meta.target = -clamped * base * meta.depth;
+        });
+      } else {
+        sectionParallaxMeta.forEach((meta) => {
+          meta.target = 0;
+        });
+      }
 
-    if (orbs.length && runHeavy) {
       if (!prefersReducedMotion && !isMobile) {
         const driftBase = 0.14;
-        orbs.forEach((orb, index) => {
-          const depth = parseFloat(orb.dataset.depth || "0.2");
-          const y = -scrollTop * driftBase * depth;
-          const sway = Math.sin(scrollTop * 0.001 + index) * 18 * depth;
-          const swayY = Math.cos(scrollTop * 0.0008 + index) * 8 * depth;
-          orb.style.setProperty("--orb-x", `${sway.toFixed(2)}px`);
-          orb.style.setProperty("--orb-y", `${(y + swayY).toFixed(2)}px`);
+        orbMeta.forEach((meta, index) => {
+          const y = -scrollTop * driftBase * meta.depth;
+          const sway = Math.sin(scrollTop * 0.001 + index) * 18 * meta.depth;
+          const swayY = Math.cos(scrollTop * 0.0008 + index) * 8 * meta.depth;
+          meta.targetX = sway;
+          meta.targetY = y + swayY;
         });
       } else {
-        orbs.forEach((orb) => {
-          orb.style.setProperty("--orb-x", "0px");
-          orb.style.setProperty("--orb-y", "0px");
+        orbMeta.forEach((meta) => {
+          meta.targetX = 0;
+          meta.targetY = 0;
         });
       }
-    }
 
-    if (runHeavy) {
       lastHeavyUpdateAt = now;
     }
 
-    document.body.classList.toggle(
-      "render-words-auto",
-      isMobile && heroWordInners.length > 0 && !prefersReducedMotion
-    );
+    const parallaxEase = isMobile ? 1 : 0.3;
+    parallaxMeta.forEach((meta) => {
+      if (parallaxEase >= 1) {
+        meta.current = 0;
+      } else {
+        meta.current += (meta.target - meta.current) * parallaxEase;
+        if (Math.abs(meta.current) < 0.04 && Math.abs(meta.target) < 0.04) {
+          meta.current = 0;
+        }
+      }
+      if (Math.abs(meta.current - meta.applied) > 0.08) {
+        meta.applied = meta.current;
+        meta.el.style.setProperty("--scroll-parallax", `${meta.current.toFixed(2)}px`);
+      }
+    });
+
+    const sectionEase = isMobile ? 1 : 0.24;
+    sectionParallaxMeta.forEach((meta) => {
+      if (sectionEase >= 1) {
+        meta.current = 0;
+      } else {
+        meta.current += (meta.target - meta.current) * sectionEase;
+        if (Math.abs(meta.current) < 0.03 && Math.abs(meta.target) < 0.03) {
+          meta.current = 0;
+        }
+      }
+      if (Math.abs(meta.current - meta.applied) > 0.06) {
+        meta.applied = meta.current;
+        meta.el.style.setProperty("--section-parallax", `${meta.current.toFixed(2)}px`);
+      }
+    });
+
+    orbMeta.forEach((meta) => {
+      meta.currentX += (meta.targetX - meta.currentX) * 0.18;
+      meta.currentY += (meta.targetY - meta.currentY) * 0.18;
+      if (Math.abs(meta.currentX) < 0.03 && Math.abs(meta.targetX) < 0.03) {
+        meta.currentX = 0;
+      }
+      if (Math.abs(meta.currentY) < 0.03 && Math.abs(meta.targetY) < 0.03) {
+        meta.currentY = 0;
+      }
+      if (Math.abs(meta.currentX - meta.appliedX) > 0.06) {
+        meta.appliedX = meta.currentX;
+        meta.el.style.setProperty("--orb-x", `${meta.currentX.toFixed(2)}px`);
+      }
+      if (Math.abs(meta.currentY - meta.appliedY) > 0.06) {
+        meta.appliedY = meta.currentY;
+        meta.el.style.setProperty("--orb-y", `${meta.currentY.toFixed(2)}px`);
+      }
+    });
+
+    const shouldRenderWordsAuto = isMobile && heroWordInners.length > 0 && !prefersReducedMotion;
+    if (shouldRenderWordsAuto !== lastRenderWordsAuto) {
+      document.body.classList.toggle("render-words-auto", shouldRenderWordsAuto);
+      lastRenderWordsAuto = shouldRenderWordsAuto;
+    }
 
     if (isMobile && heroWordInners.length && !prefersReducedMotion) {
       if (!autoRenderApplied) {
@@ -1544,19 +1693,42 @@
   window.addEventListener(
     "scroll",
     () => {
+      if (!prefersReducedMotion) {
+        document.body.classList.add("is-scrolling");
+        if (scrollSettleTimer) {
+          window.clearTimeout(scrollSettleTimer);
+        }
+        scrollSettleTimer = window.setTimeout(() => {
+          document.body.classList.remove("is-scrolling");
+        }, 120);
+      }
       lastScrollFrameAt = performance.now();
       if (scrollTicking) return;
       scrollTicking = true;
       requestAnimationFrame(() => {
-        updateScrollEffects();
+        updateScrollEffects(false);
         scrollTicking = false;
       });
     },
     { passive: true }
   );
 
-  window.addEventListener("resize", updateScrollEffects);
-  updateScrollEffects();
+  const handleResize = () => {
+    if (resizeTicking) return;
+    resizeTicking = true;
+    requestAnimationFrame(() => {
+      resizeTicking = false;
+      refreshScrollMetrics();
+      updateScrollEffects(true);
+    });
+  };
+
+  window.addEventListener("resize", handleResize, { passive: true });
+  window.addEventListener("orientationchange", handleResize, { passive: true });
+  window.addEventListener("load", handleResize, { once: true, passive: true });
+
+  refreshScrollMetrics();
+  updateScrollEffects(true);
 
   function lerpAngle(a, b, t) {
     const diff = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
