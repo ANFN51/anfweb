@@ -13,6 +13,7 @@
   --lift-3: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 20px 40px rgba(0, 0, 0, 0.2);
   --card-bg: linear-gradient(180deg, #061540 0%, #071f42 100%);
   --card-bg-hover: linear-gradient(180deg, #0c2b69 0%, #041040 100%);
+  --scroll-bounce: 0px;
 }
 
 * {
@@ -76,6 +77,38 @@ a {
     radial-gradient(circle at 30% 10%, rgba(30, 60, 120, 0.2), transparent 55%),
     radial-gradient(circle at 70% 80%, rgba(15, 30, 70, 0.28), transparent 60%),
     #04060e;
+}
+
+.milkyway-galaxy {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 180vw;
+  height: 120vh;
+  min-width: 1400px;
+  min-height: 900px;
+  transform: translate3d(
+      calc(-50% + var(--galaxy-x, 0px)),
+      calc(-50% + var(--galaxy-y, 0px)),
+      0
+    )
+    rotate(var(--galaxy-rotate, -14deg))
+    scale(var(--galaxy-scale, 1.04));
+  background-image: url('assets/milkyway.svg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: opacity 1.6s ease-out;
+  filter: blur(0.9px) brightness(0.62) saturate(1.15);
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.milkyway-galaxy.is-loaded {
+  opacity: 0.28;
 }
 
 .background-layer::before,
@@ -666,14 +699,13 @@ a,
   box-shadow: var(--lift-3);
   border: 1px solid rgba(17, 17, 17, 0.08);
   transform:
-    translateY(calc(var(--lift) + var(--scroll-parallax, 0px)))
+    translateY(calc(var(--lift) + var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px)))
     scale(var(--scale))
     rotateX(var(--rx))
     rotateY(var(--ry))
     translateZ(0);
   transform-style: preserve-3d;
   transition: transform 0.55s cubic-bezier(0.18, 0.72, 0.2, 1), box-shadow 0.55s cubic-bezier(0.18, 0.72, 0.2, 1);
-  will-change: transform, box-shadow;
 }
 
 .card:hover {
@@ -750,7 +782,7 @@ a,
   display: grid;
   gap: 16px;
   color: #f6f2eb;
-  transform: translateY(calc(var(--lift) + var(--scroll-parallax, 0px))) scale(var(--scale));
+  transform: translateY(calc(var(--lift) + var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px))) scale(var(--scale));
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
@@ -842,14 +874,13 @@ a,
   border: 1px solid rgba(17, 17, 17, 0.08);
   box-shadow: var(--lift-2);
   transform:
-    translateY(calc(var(--lift) + var(--scroll-parallax, 0px)))
+    translateY(calc(var(--lift) + var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px)))
     scale(var(--scale))
     rotateX(var(--rx))
     rotateY(var(--ry))
     translateZ(0);
   transform-style: preserve-3d;
   transition: transform 0.55s cubic-bezier(0.18, 0.72, 0.2, 1), box-shadow 0.55s cubic-bezier(0.18, 0.72, 0.2, 1);
-  will-change: transform, box-shadow;
 }
 
 .list-item:hover {
@@ -859,13 +890,12 @@ a,
 }
 
 .stat-bar {
-  transform: translateY(var(--scroll-parallax, 0px));
+  transform: translateY(calc(var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px)));
   transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: transform;
 }
 
 .stat-bar:hover {
-  transform: translateY(calc(var(--scroll-parallax, 0px) - 6px));
+  transform: translateY(calc(var(--scroll-parallax, 0px) + var(--scroll-bounce, 0px) - 6px));
 }
 
 .stat-track {
@@ -1255,6 +1285,18 @@ a,
     opacity: 0.55;
     filter: blur(30px);
   }
+  .milkyway-galaxy {
+    width: 235vw;
+    height: 130vh;
+    min-width: 0;
+    min-height: 0;
+    opacity: 0.18;
+    filter: blur(0.8px) brightness(0.68) saturate(1.06);
+    --galaxy-scale: 1.08;
+  }
+  .milkyway-galaxy.is-loaded {
+    opacity: 0.2;
+  }
   .btn,
   .card,
   .list-item,
@@ -1330,6 +1372,9 @@ a,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --scroll-bounce: 0px;
+  }
   .reveal {
     opacity: 1;
     transform: none;
@@ -1347,6 +1392,10 @@ a,
   .background-layer::before,
   .background-layer::after {
     animation: none;
+  }
+  .milkyway-galaxy {
+    transform: translate3d(-50%, -50%, 0) rotate(-14deg) scale(1.02);
+    transition: opacity 0.8s ease-out;
   }
   .block-stack::before {
     animation: none;

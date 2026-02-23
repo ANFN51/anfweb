@@ -3,7 +3,7 @@
   const container = canvas.parentElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   const mobileQuery = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobileQuery.matches ? 1.25 : 1.85));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
@@ -26,7 +26,10 @@
   const globeGroup = new THREE.Group();
   scene.add(globeGroup);
 
-  const geo = new THREE.SphereGeometry(1, 160, 160);
+  const earthSegments = mobileQuery.matches ? 96 : 160;
+  const cloudSegments = mobileQuery.matches ? 72 : 128;
+  const atmosphereSegments = mobileQuery.matches ? 44 : 64;
+  const geo = new THREE.SphereGeometry(1, earthSegments, earthSegments);
 
   const earthMat = new THREE.MeshPhongMaterial({
     color: 0xffffff,
@@ -41,11 +44,11 @@
     opacity: 0.65,
     depthWrite: false
   });
-  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.02, 128, 128), cloudsMat);
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.02, cloudSegments, cloudSegments), cloudsMat);
   globeGroup.add(clouds);
 
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(1.06, 64, 64),
+    new THREE.SphereGeometry(1.06, atmosphereSegments, atmosphereSegments),
     new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
@@ -73,6 +76,7 @@
 
   function resize() {
     const { width, height } = container.getBoundingClientRect();
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobileQuery.matches ? 1.25 : 1.85));
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
@@ -94,6 +98,46 @@
   let hoverX = 0;
   let hoverY = 0;
   let hoverActive = false;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const milkyway = document.querySelector(".milkyway-galaxy");
+  let galaxyLoaded = false;
+
+  initRotatingFavicon();
+
+  // Galaxy mouse tracking
+  let galaxyMouseX = 0;
+  let galaxyMouseY = 0;
+  let galaxyTargetX = 0;
+  let galaxyTargetY = 0;
+  let galaxyScrollX = 0;
+  let galaxyScrollY = 0;
+  let galaxyScrollRotate = -14;
+  let galaxyCurrentX = 0;
+  let galaxyCurrentY = 0;
+  let galaxyCurrentRotate = -14;
+  let lastFrameTime = 0;
+  let lastScrollFrameAt = 0;
+  let globeVisible = true;
+  let scrollBounce = 0;
+  let scrollBounceTarget = 0;
+  let lastScrollTopValue = window.scrollY || window.pageYOffset || 0;
+  let lastScrollSampleTime = performance.now();
+
+  const globeObserver = new IntersectionObserver(
+    (entries) => {
+      globeVisible = entries.some((entry) => entry.isIntersecting);
+    },
+    { threshold: 0.02 }
+  );
+  globeObserver.observe(container);
+
+  document.addEventListener("mousemove", (e) => {
+    if (mobileQuery.matches || prefersReducedMotion) return;
+    const x = (e.clientX / window.innerWidth - 0.5) * 2;
+    const y = (e.clientY / window.innerHeight - 0.5) * 2;
+    galaxyTargetX = x * 30;
+    galaxyTargetY = y * 20;
+  });
 
   container.addEventListener("mouseenter", () => {
     hoverActive = true;
@@ -115,10 +159,16 @@
     hoverX = -y * 0.9;
   });
 
-  function animate() {
+  function animate(frameTime = 0) {
+    requestAnimationFrame(animate);
+    if (document.hidden) return;
+
+    const frameBudget = mobileQuery.matches ? 1000 / 24 : 1000 / 50;
+    if (frameTime - lastFrameTime < frameBudget) return;
+    lastFrameTime = frameTime;
+
     spinY += mobileQuery.matches ? 0.0016 : 0.0028;
-    const now = Date.now();
-    const baseX = Math.sin(now * 0.0002) * 0.03;
+    const baseX = Math.sin(frameTime * 0.0002) * 0.03;
     const baseY = spinY;
 
     if (mobileQuery.matches) {
@@ -138,11 +188,161 @@
 
     globeGroup.rotation.set(currentX, currentY, 0);
     container.classList.toggle("show-label", mobileQuery.matches && mobileFocus > 0.15);
-    clouds.rotation.y += 0.0022;
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+    clouds.rotation.y += mobileQuery.matches ? 0.0011 : 0.0022;
+
+    if (milkyway && galaxyLoaded) {
+      if (prefersReducedMotion) {
+        milkyway.style.setProperty("--galaxy-x", "0px");
+        milkyway.style.setProperty("--galaxy-y", "0px");
+        milkyway.style.setProperty("--galaxy-rotate", "-14deg");
+      } else {
+        const mouseEase = mobileQuery.matches ? 0.02 : 0.06;
+        const blend = mobileQuery.matches ? 0.05 : 0.085;
+
+        galaxyMouseX += (galaxyTargetX - galaxyMouseX) * mouseEase;
+        galaxyMouseY += (galaxyTargetY - galaxyMouseY) * mouseEase;
+
+        const targetX = galaxyScrollX + galaxyMouseX;
+        const targetY = galaxyScrollY + galaxyMouseY;
+        const targetRotate = galaxyScrollRotate + galaxyMouseX * 0.04;
+
+        galaxyCurrentX += (targetX - galaxyCurrentX) * blend;
+        galaxyCurrentY += (targetY - galaxyCurrentY) * blend;
+        galaxyCurrentRotate += (targetRotate - galaxyCurrentRotate) * blend;
+
+        milkyway.style.setProperty("--galaxy-x", `${galaxyCurrentX.toFixed(2)}px`);
+        milkyway.style.setProperty("--galaxy-y", `${galaxyCurrentY.toFixed(2)}px`);
+        milkyway.style.setProperty("--galaxy-rotate", `${galaxyCurrentRotate.toFixed(2)}deg`);
+      }
+    }
+
+    if (!prefersReducedMotion) {
+      scrollBounce += (scrollBounceTarget - scrollBounce) * 0.18;
+      scrollBounceTarget *= 0.86;
+      if (Math.abs(scrollBounce) < 0.03 && Math.abs(scrollBounceTarget) < 0.03) {
+        scrollBounce = 0;
+        scrollBounceTarget = 0;
+      }
+      document.documentElement.style.setProperty("--scroll-bounce", `${scrollBounce.toFixed(2)}px`);
+    } else {
+      document.documentElement.style.setProperty("--scroll-bounce", "0px");
+    }
+
+    if (globeVisible) {
+      renderer.render(scene, camera);
+    }
   }
-  animate();
+  requestAnimationFrame(animate);
+
+  function initRotatingFavicon() {
+    const favicon = document.getElementById("site-favicon");
+    if (!favicon || prefersReducedMotion || mobileQuery.matches) return;
+
+    const iconCanvas = document.createElement("canvas");
+    iconCanvas.width = 64;
+    iconCanvas.height = 64;
+    const ctx = iconCanvas.getContext("2d");
+    if (!ctx) return;
+
+    const mapCanvas = document.createElement("canvas");
+    mapCanvas.width = 128;
+    mapCanvas.height = 64;
+    const mapCtx = mapCanvas.getContext("2d");
+    if (!mapCtx) return;
+
+    mapCtx.clearRect(0, 0, 128, 64);
+    mapCtx.fillStyle = "#3fb56f";
+    drawLand(mapCtx, 18, 20, 16, 10, -0.45);
+    drawLand(mapCtx, 28, 39, 20, 13, 0.25);
+    drawLand(mapCtx, 48, 28, 13, 8, -0.1);
+    drawLand(mapCtx, 58, 44, 12, 8, 0.28);
+    drawLand(mapCtx, 84, 22, 15, 9, -0.32);
+    drawLand(mapCtx, 96, 38, 18, 12, 0.24);
+    drawLand(mapCtx, 112, 27, 11, 7, -0.14);
+    drawLand(mapCtx, 118, 46, 10, 7, 0.35);
+
+    let last = 0;
+    const frameMs = 1000 / 4;
+
+    const tick = (time) => {
+      if (!document.hidden && time - last >= frameMs && time - lastScrollFrameAt > 180) {
+        last = time;
+        renderIcon(time);
+      }
+      requestAnimationFrame(tick);
+    };
+
+    const renderIcon = (time) => {
+      const cx = 32;
+      const cy = 32;
+      const radius = 25;
+      const shift = (time * 0.008) % 128;
+      const lightDrift = Math.sin(time * 0.0008) * 4;
+
+      ctx.clearRect(0, 0, 64, 64);
+
+      ctx.beginPath();
+      ctx.ellipse(cx + 2, cy + 3, radius + 1, radius - 1, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+      ctx.fill();
+
+      const ocean = ctx.createRadialGradient(cx - 9, cy - 10, 3, cx, cy, radius + 2);
+      ocean.addColorStop(0, "#4ac1ff");
+      ocean.addColorStop(0.55, "#1e79cf");
+      ocean.addColorStop(1, "#0a356b");
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = ocean;
+      ctx.fill();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.clip();
+
+      ctx.globalAlpha = 0.96;
+      ctx.drawImage(mapCanvas, -shift, 0);
+      ctx.drawImage(mapCanvas, 128 - shift, 0);
+
+      const shade = ctx.createLinearGradient(cx - radius + lightDrift, 0, cx + radius + lightDrift, 0);
+      shade.addColorStop(0, "rgba(0, 10, 28, 0.5)");
+      shade.addColorStop(0.42, "rgba(0, 0, 0, 0.04)");
+      shade.addColorStop(1, "rgba(0, 14, 34, 0.62)");
+      ctx.fillStyle = shade;
+      ctx.fillRect(0, 0, 64, 64);
+
+      const gloss = ctx.createRadialGradient(cx - 10, cy - 10, 2, cx - 10, cy - 10, radius);
+      gloss.addColorStop(0, "rgba(255, 255, 255, 0.26)");
+      gloss.addColorStop(1, "rgba(255, 255, 255, 0)");
+      ctx.fillStyle = gloss;
+      ctx.fillRect(0, 0, 64, 64);
+      ctx.restore();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(157, 219, 255, 0.82)";
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      try {
+        favicon.href = iconCanvas.toDataURL("image/png");
+      } catch (_error) {
+        // Keep static SVG fallback favicon if data URLs are blocked.
+      }
+    };
+
+    requestAnimationFrame(tick);
+  }
+
+  function drawLand(ctx, x, y, w, h, rot) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rot);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, w, h, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 
   const nasaDiffuseUrl = "https://upload.wikimedia.org/wikipedia/commons/c/cd/Land_ocean_ice_2048.jpg";
   const nasaCloudsUrl = "https://upload.wikimedia.org/wikipedia/commons/6/6b/Land_ocean_ice_cloud_hires.jpg";
@@ -160,8 +360,9 @@
 
       // Improve texture filtering for smoother appearance
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
+      const targetAniso = mobileQuery.matches ? 2 : 6;
       [textures.diffuse, textures.bump, textures.specular, textures.clouds].forEach((tex) => {
-        tex.anisotropy = Math.min(8, maxAniso);
+        tex.anisotropy = Math.min(targetAniso, maxAniso);
         tex.minFilter = THREE.LinearMipMapLinearFilter;
         tex.magFilter = THREE.LinearFilter;
         tex.colorSpace = THREE.SRGBColorSpace;
@@ -180,8 +381,8 @@
 
   function loadNasaTextures(diffuseUrl, cloudsUrl) {
     return Promise.all([loadImage(diffuseUrl), loadImage(cloudsUrl)]).then(([diffuseImg, cloudsImg]) => {
-      const width = 2048;
-      const height = 1024;
+      const width = mobileQuery.matches ? 1024 : 1536;
+      const height = width / 2;
       const diffuse = createCanvasTexture(diffuseImg, width, height);
       const bump = createBumpFromDiffuse(diffuse, width, height);
       const specular = createSpecularFromDiffuse(diffuse, width, height);
@@ -293,6 +494,19 @@
   }
 
   const reveals = document.querySelectorAll(".reveal");
+
+  // Fade in galaxy after load
+  if (milkyway) {
+    const galaxyImg = new Image();
+    galaxyImg.onload = () => {
+      setTimeout(() => {
+        milkyway.classList.add("is-loaded");
+        galaxyLoaded = true;
+      }, 500);
+    };
+    galaxyImg.src = "assets/milkyway.svg";
+  }
+
   if (mobileQuery.matches) {
     reveals.forEach((el) => el.classList.add("is-visible"));
   } else {
@@ -359,23 +573,67 @@
     el.dataset.parallax = (base + variance).toFixed(2);
   });
   const parallaxTargets = Array.from(document.querySelectorAll("[data-parallax]"));
-  const revealParallaxEls = Array.from(document.querySelectorAll(".reveal"));
+  const parallaxEls = parallaxTargets;
   const sectionParallaxEls = Array.from(document.querySelectorAll("[data-section-depth]"));
   const orbs = Array.from(document.querySelectorAll(".parallax-orb"));
   const heroWords = Array.from(document.querySelectorAll(".hero-word"));
   const heroWordInners = heroWords.map((word) => word.querySelector(".hero-word-inner") || word);
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let autoRenderApplied = false;
   let scrollTicking = false;
+  let lastHeavyUpdateAt = 0;
+  let lastModeIsMobile = mobileQuery.matches;
 
   const updateScrollEffects = () => {
     const scrollTop = window.scrollY || window.pageYOffset;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = docHeight > 0 ? scrollTop / docHeight : 0;
     const isMobile = mobileQuery.matches;
+    const now = performance.now();
+    const heavyInterval = isMobile ? 72 : 28;
+    const runHeavy = now - lastHeavyUpdateAt > heavyInterval;
+
+    if (isMobile !== lastModeIsMobile) {
+      if (isMobile) {
+        parallaxEls.forEach((el) => el.style.setProperty("--scroll-parallax", "0px"));
+        sectionParallaxEls.forEach((section) => section.style.setProperty("--section-parallax", "0px"));
+      }
+      lastModeIsMobile = isMobile;
+    }
+
+    if (!prefersReducedMotion) {
+      const delta = scrollTop - lastScrollTopValue;
+      const deltaTime = Math.max(16, now - lastScrollSampleTime);
+      const velocity = delta / deltaTime;
+      const maxBounce = isMobile ? 1.8 : 2.6;
+      scrollBounceTarget = Math.max(-maxBounce, Math.min(maxBounce, velocity * 10));
+      lastScrollTopValue = scrollTop;
+      lastScrollSampleTime = now;
+    } else {
+      scrollBounceTarget = 0;
+      lastScrollTopValue = scrollTop;
+      lastScrollSampleTime = now;
+    }
 
     if (header) {
       header.classList.toggle("is-scrolled", !isMobile && scrollTop > 12);
+    }
+
+    if (milkyway) {
+      if (prefersReducedMotion) {
+        galaxyScrollX = 0;
+        galaxyScrollY = 0;
+        galaxyScrollRotate = -14;
+        galaxyTargetX = 0;
+        galaxyTargetY = 0;
+      } else {
+        const eased = progress * progress * (3 - 2 * progress);
+        const driftY = (eased - 0.5) * (isMobile ? 80 : 150);
+        const driftX = Math.sin(progress * Math.PI * 2) * (isMobile ? 14 : 34);
+        const baseRotate = -14 + eased * (isMobile ? 4 : 6);
+        galaxyScrollX = driftX;
+        galaxyScrollY = driftY;
+        galaxyScrollRotate = baseRotate;
+      }
     }
 
 
@@ -422,11 +680,9 @@
       }
     }
 
-    const parallaxEls = Array.from(new Set([...parallaxTargets, ...revealParallaxEls]));
-
-    if (parallaxEls.length) {
+    if (parallaxEls.length && runHeavy && !isMobile) {
       if (!prefersReducedMotion) {
-        const base = isMobile ? 70 : 320;
+        const base = 260;
         parallaxEls.forEach((el) => {
           const rect = el.getBoundingClientRect();
           const center = rect.top + rect.height / 2;
@@ -444,7 +700,7 @@
       }
     }
 
-    if (sectionParallaxEls.length) {
+    if (sectionParallaxEls.length && runHeavy && !isMobile) {
       const base = isMobile ? 50 : 110;
       sectionParallaxEls.forEach((section) => {
         const rect = section.getBoundingClientRect();
@@ -457,7 +713,7 @@
       });
     }
 
-    if (orbs.length) {
+    if (orbs.length && runHeavy) {
       if (!prefersReducedMotion && !isMobile) {
         const driftBase = 0.14;
         orbs.forEach((orb, index) => {
@@ -474,6 +730,10 @@
           orb.style.setProperty("--orb-y", "0px");
         });
       }
+    }
+
+    if (runHeavy) {
+      lastHeavyUpdateAt = now;
     }
 
     document.body.classList.toggle(
@@ -501,6 +761,7 @@
   window.addEventListener(
     "scroll",
     () => {
+      lastScrollFrameAt = performance.now();
       if (scrollTicking) return;
       scrollTicking = true;
       requestAnimationFrame(() => {
@@ -519,7 +780,7 @@
     return a + diff * t;
   }
 
-  if (!prefersReducedMotion) {
+  if (!prefersReducedMotion && !mobileQuery.matches) {
     attachTilt(".card", 9, 12);
     attachTilt(".list-item", 7, 10);
   }
