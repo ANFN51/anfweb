@@ -37,7 +37,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css?v=20260224ab" />
 </head>
-<body>
+<body class="is-loading">
+  <div id="loaderOverlay" class="loader-overlay" role="status" aria-live="polite" aria-label="Loading portfolio">
+    <canvas id="loaderCanvas"></canvas>
+    <div class="loader-fx" aria-hidden="true"></div>
+  </div>
   <div class="background-layer" aria-hidden="true"></div>
   <div class="milkyway-galaxy" aria-hidden="true"></div>
 
@@ -310,6 +314,6 @@
   </div>
 
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="js/main.js?v=20260224ab"></script>
+  <script src="js/main.js?v=20260224ac"></script>
 </body>
 </html>

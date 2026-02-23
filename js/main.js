@@ -1,4 +1,787 @@
 (() => {
+  initNebulaLoader();
+
+  function initNebulaLoader() {
+    const overlay = document.getElementById("loaderOverlay");
+    const loaderCanvas = document.getElementById("loaderCanvas");
+    const tagline = document.getElementById("loaderTagline");
+    const ThreeLib = window.THREE;
+
+    if (!overlay || !loaderCanvas || !ThreeLib) {
+      document.body.classList.remove("is-loading");
+      return;
+    }
+
+    const isMobileLoader = window.matchMedia("(max-width: 768px), (hover: none) and (pointer: coarse)").matches;
+    const reducedMotionLoader = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const loaderRenderer = new ThreeLib.WebGLRenderer({
+      canvas: loaderCanvas,
+      antialias: !isMobileLoader,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+    loaderRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileLoader ? 1.15 : 1.6));
+    loaderRenderer.setSize(window.innerWidth, window.innerHeight, false);
+    loaderRenderer.outputColorSpace = ThreeLib.SRGBColorSpace;
+    loaderRenderer.toneMapping = ThreeLib.ACESFilmicToneMapping;
+    loaderRenderer.toneMappingExposure = 1.03;
+    loaderRenderer.useLegacyLights = false;
+
+    const loaderScene = new ThreeLib.Scene();
+    const loaderCamera = new ThreeLib.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 180);
+    const loaderBaseCameraZ = isMobileLoader ? 18 : 15;
+    loaderCamera.position.z = loaderBaseCameraZ;
+
+    const ambient = new ThreeLib.AmbientLight(0xc8d4e2, 0.34);
+    const key = new ThreeLib.PointLight(0xe4ecff, 2.15, 120, 2);
+    key.position.set(4, 2, 8);
+    const fill = new ThreeLib.PointLight(0x8ca0bb, 0.95, 120, 2);
+    fill.position.set(-7, -2, 6);
+    const warmRim = new ThreeLib.PointLight(0xffd6a8, 0.5, 140, 2);
+    warmRim.position.set(7, -1, -6);
+    const galaxyKey = new ThreeLib.PointLight(0xbecfe2, 0.75, 150, 2);
+    galaxyKey.position.set(-9, 4, -8);
+    loaderScene.add(ambient, key, fill, warmRim, galaxyKey);
+
+    const maxAnisotropy = Math.min(loaderRenderer.capabilities.getMaxAnisotropy(), isMobileLoader ? 2 : 6);
+    const particleTexture = createParticleTexture(isMobileLoader ? 112 : 160, maxAnisotropy);
+
+    const galaxyGroup = new ThreeLib.Group();
+    galaxyGroup.rotation.x = isMobileLoader ? 0.84 : 0.78;
+    galaxyGroup.rotation.z = -0.2;
+    loaderScene.add(galaxyGroup);
+
+    const galaxyCore = createCoreSprite(isMobileLoader ? 5.8 : 6.8);
+    galaxyGroup.add(galaxyCore);
+
+    const galaxyArms = createGalaxyPoints({
+      count: isMobileLoader ? 2200 : 4200,
+      arms: 4,
+      radius: isMobileLoader ? 6.8 : 7.8,
+      twist: 1.3,
+      armJitter: 1.3,
+      height: 0.55,
+      noise: 0.35,
+      radiusPower: 0.62,
+      size: isMobileLoader ? 0.08 : 0.095,
+      opacity: 0.95,
+      innerColor: 0xfff0da,
+      outerColor: 0x8ca7bf
+    });
+    galaxyGroup.add(galaxyArms);
+
+    const galaxyDust = createGalaxyPoints({
+      count: isMobileLoader ? 900 : 1700,
+      arms: 5,
+      radius: isMobileLoader ? 8.2 : 9.1,
+      twist: 0.9,
+      armJitter: 2.1,
+      height: 1.1,
+      noise: 0.65,
+      radiusPower: 0.8,
+      size: isMobileLoader ? 0.1 : 0.125,
+      opacity: 0.28,
+      innerColor: 0xd9d2c7,
+      outerColor: 0x73859b
+    });
+    galaxyGroup.add(galaxyDust);
+
+    const stars = createLoaderPoints({
+      count: isMobileLoader ? 760 : 1450,
+      radiusMin: 20,
+      radiusMax: 88,
+      size: isMobileLoader ? 0.065 : 0.085,
+      hueBase: 0.59,
+      hueRange: 0.05,
+      saturation: 0.2,
+      lightMin: 0.72,
+      lightRange: 0.18,
+      opacity: 0.84
+    });
+    loaderScene.add(stars);
+
+    const planetSystem = createPlanetSystem();
+    loaderScene.add(planetSystem.group);
+
+    function createParticleTexture(size, anisotropy) {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      const mid = size * 0.5;
+
+      const glow = ctx.createRadialGradient(mid, mid, 0, mid, mid, mid);
+      glow.addColorStop(0, "rgba(255,255,255,1)");
+      glow.addColorStop(0.24, "rgba(245,248,255,0.95)");
+      glow.addColorStop(0.56, "rgba(194,213,234,0.58)");
+      glow.addColorStop(0.78, "rgba(151,170,192,0.2)");
+      glow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, size, size);
+
+      const texture = new ThreeLib.CanvasTexture(canvas);
+      texture.colorSpace = ThreeLib.SRGBColorSpace;
+      texture.anisotropy = anisotropy;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    function createPlanetSystem() {
+      const group = new ThreeLib.Group();
+      const textures = [];
+      const materials = [];
+      const geometries = [];
+      let isDisposed = false;
+
+      function trackTexture(texture) {
+        texture.anisotropy = maxAnisotropy;
+        texture.needsUpdate = true;
+        textures.push(texture);
+        return texture;
+      }
+      function trackMaterial(material) {
+        materials.push(material);
+        return material;
+      }
+      function trackGeometry(geometry) {
+        geometries.push(geometry);
+        return geometry;
+      }
+
+      const gasPivot = new ThreeLib.Group();
+      gasPivot.position.set(isMobileLoader ? -4.9 : -6.2, isMobileLoader ? 2.2 : 2.8, -4.4);
+      gasPivot.rotation.z = 0.27;
+      group.add(gasPivot);
+
+      const gasTextureSize = isMobileLoader ? 240 : 360;
+      const gasDiffuse = trackTexture(createGasTexture(gasTextureSize));
+      const gasCloudsTexture = trackTexture(createGasCloudTexture(gasTextureSize));
+      gasDiffuse.colorSpace = ThreeLib.SRGBColorSpace;
+      gasCloudsTexture.colorSpace = ThreeLib.SRGBColorSpace;
+
+      const gasSphere = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.SphereGeometry(isMobileLoader ? 1.05 : 1.25, isMobileLoader ? 52 : 84, isMobileLoader ? 52 : 84)),
+        trackMaterial(new ThreeLib.MeshStandardMaterial({
+          map: gasDiffuse,
+          roughness: 0.9,
+          metalness: 0.02,
+          emissive: new ThreeLib.Color(0x0c0f14),
+          emissiveIntensity: 0.08
+        }))
+      );
+      gasPivot.add(gasSphere);
+
+      const gasClouds = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.SphereGeometry(isMobileLoader ? 1.075 : 1.275, isMobileLoader ? 40 : 72, isMobileLoader ? 40 : 72)),
+        trackMaterial(new ThreeLib.MeshStandardMaterial({
+          map: gasCloudsTexture,
+          transparent: true,
+          opacity: 0.24,
+          depthWrite: false,
+          roughness: 1,
+          metalness: 0
+        }))
+      );
+      gasPivot.add(gasClouds);
+
+      const gasAtmosphere = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.SphereGeometry(isMobileLoader ? 1.12 : 1.33, isMobileLoader ? 40 : 64, isMobileLoader ? 40 : 64)),
+        trackMaterial(new ThreeLib.ShaderMaterial({
+          transparent: true,
+          depthWrite: false,
+          blending: ThreeLib.AdditiveBlending,
+          uniforms: { color: { value: new ThreeLib.Color(0xc7d4e3) } },
+          vertexShader: `
+            varying vec3 vNormal;
+            void main() {
+              vNormal = normalize(normalMatrix * normal);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vNormal;
+            uniform vec3 color;
+            void main() {
+              float intensity = pow(0.68 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+              gl_FragColor = vec4(color, intensity * 0.36);
+            }
+          `
+        }))
+      );
+      gasPivot.add(gasAtmosphere);
+
+      const ringTexture = trackTexture(createRingTexture(isMobileLoader ? 512 : 768));
+      ringTexture.colorSpace = ThreeLib.SRGBColorSpace;
+      const ring = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.RingGeometry(isMobileLoader ? 1.45 : 1.7, isMobileLoader ? 2.35 : 2.75, isMobileLoader ? 80 : 128)),
+        trackMaterial(new ThreeLib.MeshBasicMaterial({
+          map: ringTexture,
+          transparent: true,
+          opacity: 0.62,
+          side: ThreeLib.DoubleSide,
+          depthWrite: false
+        }))
+      );
+      ring.rotation.x = Math.PI * 0.48;
+      ring.rotation.z = 0.22;
+      gasPivot.add(ring);
+
+      const rockyPivot = new ThreeLib.Group();
+      rockyPivot.position.set(isMobileLoader ? 4.2 : 5.5, isMobileLoader ? -2.3 : -2.9, -3.1);
+      rockyPivot.rotation.z = -0.18;
+      group.add(rockyPivot);
+
+      const rockyTextureSize = isMobileLoader ? 192 : 320;
+      const rockyDiffuse = trackTexture(createRockyTexture(rockyTextureSize));
+      rockyDiffuse.colorSpace = ThreeLib.SRGBColorSpace;
+      const rockyPlanet = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.SphereGeometry(isMobileLoader ? 0.64 : 0.78, isMobileLoader ? 42 : 62, isMobileLoader ? 42 : 62)),
+        trackMaterial(new ThreeLib.MeshStandardMaterial({
+          map: rockyDiffuse,
+          roughness: 0.96,
+          metalness: 0.01,
+          emissive: new ThreeLib.Color(0x0e0f10),
+          emissiveIntensity: 0.08
+        }))
+      );
+      rockyPivot.add(rockyPlanet);
+
+      const moonOrbit = new ThreeLib.Group();
+      moonOrbit.rotation.x = 0.26;
+      rockyPivot.add(moonOrbit);
+
+      const moonDiffuse = trackTexture(createMoonTexture(isMobileLoader ? 144 : 224));
+      moonDiffuse.colorSpace = ThreeLib.SRGBColorSpace;
+      const moon = new ThreeLib.Mesh(
+        trackGeometry(new ThreeLib.SphereGeometry(isMobileLoader ? 0.18 : 0.24, isMobileLoader ? 30 : 46, isMobileLoader ? 30 : 46)),
+        trackMaterial(new ThreeLib.MeshStandardMaterial({
+          map: moonDiffuse,
+          roughness: 1,
+          metalness: 0
+        }))
+      );
+      moon.position.set(isMobileLoader ? 1.05 : 1.28, 0.12, 0);
+      moonOrbit.add(moon);
+
+      loadNasaPlanetMaps()
+        .then((maps) => {
+          if (!maps || isDisposed) return;
+          gasSphere.material.map = maps.jupiterMap;
+          gasSphere.material.bumpMap = maps.jupiterBump;
+          gasSphere.material.bumpScale = 0.014;
+          gasSphere.material.needsUpdate = true;
+
+          rockyPlanet.material.map = maps.marsMap;
+          rockyPlanet.material.bumpMap = maps.marsBump;
+          rockyPlanet.material.bumpScale = 0.03;
+          rockyPlanet.material.needsUpdate = true;
+
+          moon.material.map = maps.moonMap;
+          moon.material.bumpMap = maps.moonBump;
+          moon.material.bumpScale = 0.02;
+          moon.material.needsUpdate = true;
+        })
+        .catch(() => {
+          // Keep procedural fallback maps when external imagery is unavailable.
+        });
+
+      function createGasTexture(size) {
+        const canvas = document.createElement("canvas");
+        const width = size * 2;
+        const height = size;
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        for (let y = 0; y < height; y++) {
+          const v = y / height;
+          const bandA = Math.sin(v * 32) * 0.5 + 0.5;
+          const bandB = Math.sin(v * 87 + 1.6) * 0.5 + 0.5;
+          const drift = Math.sin(v * 14 + bandB * 2.2) * 0.5 + 0.5;
+          const hue = 34 + bandA * 11 + bandB * 5 - drift * 3;
+          const sat = 26 + bandB * 16;
+          const light = 33 + bandA * 16 + bandB * 10;
+          ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`;
+          ctx.fillRect(0, y, width, 1);
+        }
+
+        ctx.globalCompositeOperation = "screen";
+        for (let i = 0; i < 18; i++) {
+          const sx = Math.random() * width;
+          const sy = Math.random() * height;
+          const sw = width * (0.05 + Math.random() * 0.14);
+          const sh = height * (0.015 + Math.random() * 0.045);
+          const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, sw);
+          grad.addColorStop(0, "rgba(255,239,215,0.26)");
+          grad.addColorStop(1, "rgba(255,239,215,0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.ellipse(sx, sy, sw, sh, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = "source-over";
+
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function loadNasaPlanetMaps() {
+        if (typeof loadImage !== "function") {
+          return Promise.reject(new Error("loadImage unavailable"));
+        }
+
+        const jupiterUrl = "https://upload.wikimedia.org/wikipedia/commons/5/5a/Jupiter_by_Cassini-Huygens.jpg";
+        const marsUrl = "https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg";
+        const moonUrl = "https://upload.wikimedia.org/wikipedia/commons/e/e1/FullMoon2010.jpg";
+
+        return Promise.all([loadImage(jupiterUrl), loadImage(marsUrl), loadImage(moonUrl)]).then(
+          ([jupiterImg, marsImg, moonImg]) => {
+            if (isDisposed) return null;
+
+            const jupiterWidth = isMobileLoader ? 1024 : 1536;
+            const jupiterHeight = jupiterWidth / 2;
+            const marsWidth = isMobileLoader ? 768 : 1024;
+            const marsHeight = marsWidth / 2;
+            const moonWidth = isMobileLoader ? 512 : 768;
+            const moonHeight = moonWidth / 2;
+
+            const jupiterMap = trackTexture(createCanvasTextureFromImage(jupiterImg, jupiterWidth, jupiterHeight, true));
+            const marsMap = trackTexture(createCanvasTextureFromImage(marsImg, marsWidth, marsHeight, true));
+            const moonMap = trackTexture(createCanvasTextureFromImage(moonImg, moonWidth, moonHeight, true));
+            const jupiterBump = trackTexture(createBumpTextureFromImage(jupiterImg, jupiterWidth, jupiterHeight, 14));
+            const marsBump = trackTexture(createBumpTextureFromImage(marsImg, marsWidth, marsHeight, 24));
+            const moonBump = trackTexture(createBumpTextureFromImage(moonImg, moonWidth, moonHeight, 30));
+
+            return { jupiterMap, marsMap, moonMap, jupiterBump, marsBump, moonBump };
+          }
+        );
+      }
+
+      function createCanvasTextureFromImage(image, width, height, srgb) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0, width, height);
+        const texture = new ThreeLib.CanvasTexture(canvas);
+        if (srgb) texture.colorSpace = ThreeLib.SRGBColorSpace;
+        return texture;
+      }
+
+      function createBumpTextureFromImage(image, width, height, boost) {
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(image, 0, 0, width, height);
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const luma = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
+          const value = Math.max(0, Math.min(255, luma + boost));
+          data[i] = value;
+          data[i + 1] = value;
+          data[i + 2] = value;
+          data[i + 3] = 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function createGasCloudTexture(size) {
+        const canvas = document.createElement("canvas");
+        const width = size * 2;
+        const height = size;
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        ctx.clearRect(0, 0, width, height);
+        for (let i = 0; i < 140; i++) {
+          const x = Math.random() * width;
+          const y = Math.random() * height;
+          const rx = width * (0.02 + Math.random() * 0.06);
+          const ry = height * (0.01 + Math.random() * 0.03);
+          const alpha = 0.02 + Math.random() * 0.09;
+          ctx.fillStyle = `rgba(245,247,255,${alpha})`;
+          ctx.beginPath();
+          ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function createRingTexture(size) {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const center = size * 0.5;
+        const radius = size * 0.5;
+
+        const grad = ctx.createRadialGradient(center, center, radius * 0.32, center, center, radius);
+        grad.addColorStop(0, "rgba(247,237,218,0)");
+        grad.addColorStop(0.28, "rgba(247,237,218,0.12)");
+        grad.addColorStop(0.52, "rgba(206,191,160,0.75)");
+        grad.addColorStop(0.72, "rgba(174,156,126,0.36)");
+        grad.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function createRockyTexture(size) {
+        const canvas = document.createElement("canvas");
+        const width = size * 2;
+        const height = size;
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        const image = ctx.createImageData(width, height);
+        const data = image.data;
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
+            const nx = x / width;
+            const ny = y / height;
+            const n1 = hashNoise(nx * 9.7, ny * 11.3);
+            const n2 = hashNoise(nx * 21.9 + 17.1, ny * 18.4 + 9.5);
+            const n3 = hashNoise(nx * 45.7 + 3.2, ny * 39.1 + 4.8);
+            const value = n1 * 0.5 + n2 * 0.33 + n3 * 0.17;
+            const shade = 52 + value * 124;
+            data[index] = shade * 0.92;
+            data[index + 1] = shade * 0.84;
+            data[index + 2] = shade * 0.74;
+            data[index + 3] = 255;
+          }
+        }
+        ctx.putImageData(image, 0, 0);
+
+        for (let i = 0; i < 35; i++) {
+          const x = Math.random() * width;
+          const y = Math.random() * height;
+          const r = size * (0.012 + Math.random() * 0.055);
+          const crater = ctx.createRadialGradient(x, y, r * 0.15, x, y, r);
+          crater.addColorStop(0, "rgba(60,44,28,0.44)");
+          crater.addColorStop(0.7, "rgba(42,30,20,0.2)");
+          crater.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = crater;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function createMoonTexture(size) {
+        const canvas = document.createElement("canvas");
+        const width = size * 2;
+        const height = size;
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        const image = ctx.createImageData(width, height);
+        const data = image.data;
+
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
+            const nx = x / width;
+            const ny = y / height;
+            const n = hashNoise(nx * 24.2, ny * 24.2) * 0.58 + hashNoise(nx * 46.7 + 3.4, ny * 41.9 + 1.5) * 0.42;
+            const shade = 108 + n * 96;
+            data[index] = shade * 0.94;
+            data[index + 1] = shade * 0.94;
+            data[index + 2] = shade * 0.93;
+            data[index + 3] = 255;
+          }
+        }
+        ctx.putImageData(image, 0, 0);
+
+        return new ThreeLib.CanvasTexture(canvas);
+      }
+
+      function hashNoise(x, y) {
+        const v = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
+        return v - Math.floor(v);
+      }
+
+      function dispose() {
+        isDisposed = true;
+        geometries.forEach((geometry) => geometry.dispose());
+        materials.forEach((material) => material.dispose());
+        textures.forEach((texture) => texture.dispose());
+      }
+
+      return { group, gasPivot, gasSphere, gasClouds, ring, rockyPivot, rockyPlanet, moonOrbit, moon, dispose };
+    }
+
+    function createCoreSprite(size) {
+      const coreCanvas = document.createElement("canvas");
+      const coreSize = 256;
+      coreCanvas.width = coreSize;
+      coreCanvas.height = coreSize;
+      const ctx = coreCanvas.getContext("2d");
+      const center = coreSize / 2;
+      const gradient = ctx.createRadialGradient(center, center, 0, center, center, center);
+      gradient.addColorStop(0, "rgba(255,247,230,0.99)");
+      gradient.addColorStop(0.2, "rgba(255,214,150,0.82)");
+      gradient.addColorStop(0.52, "rgba(188,207,225,0.34)");
+      gradient.addColorStop(0.74, "rgba(132,151,171,0.12)");
+      gradient.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, coreSize, coreSize);
+
+      const texture = new ThreeLib.CanvasTexture(coreCanvas);
+      texture.colorSpace = ThreeLib.SRGBColorSpace;
+      const material = new ThreeLib.SpriteMaterial({
+        map: texture,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.82,
+        depthWrite: false,
+        blending: ThreeLib.AdditiveBlending
+      });
+      const sprite = new ThreeLib.Sprite(material);
+      sprite.scale.set(size, size, 1);
+      return sprite;
+    }
+
+    function createGalaxyPoints(config) {
+      const positions = new Float32Array(config.count * 3);
+      const colors = new Float32Array(config.count * 3);
+      const inner = new ThreeLib.Color(config.innerColor);
+      const outer = new ThreeLib.Color(config.outerColor);
+      const mixed = new ThreeLib.Color();
+
+      for (let i = 0; i < config.count; i++) {
+        const i3 = i * 3;
+        const armIndex = i % config.arms;
+        const radiusNorm = Math.pow(Math.random(), config.radiusPower);
+        const distance = radiusNorm * config.radius;
+        const baseAngle = (armIndex / config.arms) * Math.PI * 2;
+        const swirl = distance * config.twist;
+        const jitterAngle = (Math.random() - 0.5) * config.armJitter * (1 + distance * 0.12);
+        const angle = baseAngle + swirl + jitterAngle;
+
+        const spread = 1 + radiusNorm * 1.5;
+        positions[i3] = Math.cos(angle) * distance + ThreeLib.MathUtils.randFloatSpread(config.noise * spread);
+        positions[i3 + 1] = ThreeLib.MathUtils.randFloatSpread(config.height * (1.08 - radiusNorm));
+        positions[i3 + 2] = Math.sin(angle) * distance + ThreeLib.MathUtils.randFloatSpread(config.noise * spread);
+
+        mixed.copy(inner).lerp(outer, radiusNorm);
+        mixed.offsetHSL((Math.random() - 0.5) * 0.015, 0, (Math.random() - 0.5) * 0.04);
+        colors[i3] = mixed.r;
+        colors[i3 + 1] = mixed.g;
+        colors[i3 + 2] = mixed.b;
+      }
+
+      const geometry = new ThreeLib.BufferGeometry();
+      geometry.setAttribute("position", new ThreeLib.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new ThreeLib.BufferAttribute(colors, 3));
+
+      const material = new ThreeLib.PointsMaterial({
+        size: config.size,
+        sizeAttenuation: true,
+        map: particleTexture,
+        vertexColors: true,
+        transparent: true,
+        opacity: config.opacity,
+        alphaTest: 0.015,
+        depthWrite: false,
+        blending: ThreeLib.AdditiveBlending
+      });
+
+      return new ThreeLib.Points(geometry, material);
+    }
+
+    function createLoaderPoints(config) {
+      const positions = new Float32Array(config.count * 3);
+      const colors = new Float32Array(config.count * 3);
+
+      for (let i = 0; i < config.count; i++) {
+        const i3 = i * 3;
+        const r = ThreeLib.MathUtils.randFloat(config.radiusMin, config.radiusMax);
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(ThreeLib.MathUtils.randFloatSpread(2));
+
+        positions[i3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i3 + 1] = r * Math.cos(phi);
+        positions[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+
+        const color = new ThreeLib.Color().setHSL(
+          config.hueBase + (Math.random() - 0.5) * config.hueRange,
+          config.saturation ?? 0.35,
+          (config.lightMin ?? 0.68) + Math.random() * (config.lightRange ?? 0.2)
+        );
+        colors[i3] = color.r;
+        colors[i3 + 1] = color.g;
+        colors[i3 + 2] = color.b;
+      }
+
+      const geo = new ThreeLib.BufferGeometry();
+      geo.setAttribute("position", new ThreeLib.BufferAttribute(positions, 3));
+      geo.setAttribute("color", new ThreeLib.BufferAttribute(colors, 3));
+
+      const mat = new ThreeLib.PointsMaterial({
+        size: config.size,
+        map: particleTexture,
+        sizeAttenuation: true,
+        vertexColors: true,
+        transparent: true,
+        opacity: config.opacity,
+        alphaTest: 0.015,
+        depthWrite: false,
+        blending: ThreeLib.AdditiveBlending
+      });
+
+      return new ThreeLib.Points(geo, mat);
+    }
+
+    let loaderRaf = 0;
+    let loaderStart = performance.now();
+    let loaderLast = loaderStart;
+    let loaderExitStarted = false;
+    let loaderExitAt = 0;
+    let loaderHideTriggered = false;
+
+    const loaderExitDuration = reducedMotionLoader ? 0 : 1900;
+    const loaderExitScaleBoost = isMobileLoader ? 2.4 : 2.9;
+    const loaderExitCameraTravel = isMobileLoader ? 12.5 : 11.2;
+
+    function renderLoader(now) {
+      loaderRaf = requestAnimationFrame(renderLoader);
+      if (document.hidden) return;
+
+      const dt = Math.min((now - loaderLast) / 1000, 0.05);
+      loaderLast = now;
+      const t = (now - loaderStart) / 1000;
+
+      let exitProgress = 0;
+      if (loaderExitStarted && loaderExitDuration > 0) {
+        exitProgress = Math.min((now - loaderExitAt) / loaderExitDuration, 1);
+      } else if (loaderExitStarted) {
+        exitProgress = 1;
+      }
+      const exitEase = exitProgress < 0.5
+        ? 4 * Math.pow(exitProgress, 3)
+        : 1 - Math.pow(-2 * exitProgress + 2, 3) / 2;
+
+      const targetTilt = (isMobileLoader ? 0.84 : 0.78) + Math.sin(t * 0.28) * 0.018;
+      galaxyGroup.rotation.y += dt * (0.16 + exitEase * 0.22);
+      galaxyGroup.rotation.x += (targetTilt - galaxyGroup.rotation.x) * 0.035;
+      galaxyGroup.rotation.z = -0.2 + Math.sin(t * 0.45) * 0.015;
+      galaxyGroup.scale.setScalar(1 + exitEase * loaderExitScaleBoost);
+
+      const corePulse = 0.82 + Math.sin(t * 2.1) * 0.08;
+      galaxyCore.material.opacity = corePulse;
+
+      stars.rotation.y += dt * (0.01 + exitEase * 0.05);
+      stars.rotation.x = Math.sin(t * 0.18) * 0.04;
+
+      planetSystem.gasPivot.rotation.y += dt * (0.11 + exitEase * 0.18);
+      planetSystem.gasSphere.rotation.y += dt * 0.18;
+      planetSystem.gasClouds.rotation.y += dt * 0.24;
+      planetSystem.ring.rotation.z = 0.22 + Math.sin(t * 0.32) * 0.06;
+
+      planetSystem.rockyPivot.rotation.y -= dt * 0.14;
+      planetSystem.rockyPlanet.rotation.y += dt * 0.2;
+      planetSystem.moonOrbit.rotation.y += dt * 0.52;
+      planetSystem.moon.rotation.y += dt * 0.16;
+
+      loaderCamera.position.z = loaderBaseCameraZ - exitEase * loaderExitCameraTravel;
+      loaderCamera.position.x = Math.sin(t * 0.1) * (isMobileLoader ? 0.18 : 0.28);
+      loaderCamera.position.y = Math.cos(t * 0.12) * (isMobileLoader ? 0.12 : 0.18);
+      loaderCamera.lookAt(0, 0, 0);
+
+      if (loaderExitStarted && !loaderHideTriggered && exitProgress >= 0.76) {
+        hideLoader();
+      }
+
+      if (tagline && !reducedMotionLoader) {
+        tagline.style.setProperty("--tag-rx", `${14 + Math.sin(t * 1.1) * 5}deg`);
+        tagline.style.setProperty("--tag-ry", `${Math.cos(t * 0.9) * 8}deg`);
+        tagline.style.setProperty("--tag-z", `${-130 + Math.sin(t * 1.6) * 16}px`);
+        tagline.style.setProperty("--tag-scale", `${(1 + Math.sin(t * 2.1) * 0.03).toFixed(3)}`);
+      }
+
+      loaderRenderer.render(loaderScene, loaderCamera);
+    }
+
+    function onLoaderResize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      loaderRenderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileLoader ? 1.15 : 1.6));
+      loaderRenderer.setSize(w, h, false);
+      loaderCamera.aspect = w / h;
+      loaderCamera.updateProjectionMatrix();
+    }
+
+    function disposeLoaderScene() {
+      cancelAnimationFrame(loaderRaf);
+      window.removeEventListener("resize", onLoaderResize);
+      [galaxyArms, galaxyDust, stars].forEach((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+        loaderScene.remove(obj);
+      });
+      loaderScene.remove(planetSystem.group);
+      planetSystem.dispose();
+      if (galaxyCore.material) {
+        if (galaxyCore.material.map) galaxyCore.material.map.dispose();
+        galaxyCore.material.dispose();
+      }
+      galaxyGroup.remove(galaxyCore);
+      loaderScene.remove(galaxyGroup);
+      particleTexture.dispose();
+      loaderRenderer.dispose();
+    }
+
+    function hideLoader() {
+      if (loaderHideTriggered) return;
+      loaderHideTriggered = true;
+      overlay.classList.add("is-hidden");
+      document.body.classList.remove("is-loading");
+      window.setTimeout(() => {
+        disposeLoaderScene();
+        overlay.remove();
+      }, 950);
+    }
+
+    function startLoaderExit() {
+      if (loaderExitStarted) return;
+      loaderExitStarted = true;
+      loaderExitAt = performance.now();
+      if (reducedMotionLoader) {
+        hideLoader();
+      }
+    }
+
+    window.addEventListener("resize", onLoaderResize, { passive: true });
+    loaderRaf = requestAnimationFrame(renderLoader);
+
+    const previousOnload = window.onload;
+    window.onload = function onWindowLoad(event) {
+      if (typeof previousOnload === "function") {
+        previousOnload.call(window, event);
+      }
+      const minVisible = 3000;
+      const elapsed = performance.now() - loaderStart;
+      const delay = Math.max(0, minVisible - elapsed);
+      window.setTimeout(startLoaderExit, delay);
+    };
+
+    if (document.readyState === "complete") {
+      const minVisible = 3000;
+      const elapsed = performance.now() - loaderStart;
+      const delay = Math.max(0, minVisible - elapsed);
+      window.setTimeout(startLoaderExit, delay);
+    }
+  }
+
   const canvas = document.getElementById("globe");
   const container = canvas.parentElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
